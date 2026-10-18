@@ -13,13 +13,14 @@
 <title>GymLog</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4;overscroll-behavior:none}
-body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-#app{max-width:600px;margin:0 auto;padding:16px;min-height:100vh}
-h1{font-size:32px;font-weight:700;margin-bottom:4px}
-h2{font-size:24px;font-weight:600;margin-bottom:12px}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4}
+#app{max-width:600px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column}
+.app-header{flex:0 0 auto;padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:#0a0a0a;border-bottom:1px solid #1f1f1f;z-index:5}
+.app-content{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+h1{font-size:32px;font-weight:700}
+h2{font-size:24px;font-weight:600}
 h3{font-size:18px;font-weight:600;margin-bottom:8px}
-.date{color:#888;font-size:14px;margin-bottom:24px}
+.date{color:#888;font-size:14px}
 button{background:#2a2a2a;color:#e8e8e8;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:background .15s}
 button:active{background:#3a3a3a}
 .btn-primary{background:#4a6bff;color:#fff}
@@ -39,7 +40,7 @@ button:active{background:#3a3a3a}
 .set.done{background:#2a4a2a;border-color:#4a8a4a;color:#8aff8a}
 .line-row{padding:8px 0;border-bottom:1px solid #1f1f1f}
 .line-row:last-child{border-bottom:none}
-.timer-display{font-size:64px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px}
+.timer-display{font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px}
 .timer-mode{color:#888;font-size:13px;margin-top:4px}
 .dialog-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px)}
 .dialog{background:#1a1a1a;border-radius:16px;padding:20px;width:100%;max-width:400px;border:1px solid #333}
@@ -48,7 +49,7 @@ button:active{background:#3a3a3a}
 .dialog input:focus,.dialog textarea:focus{outline:none;border-color:#4a6bff}
 .dialog textarea{min-height:80px;resize:vertical}
 .dialog .btn-row{margin-top:8px}
-.back{background:transparent;color:#a8b8ff;padding:8px 0;margin-bottom:8px;width:auto;text-align:left;font-size:16px}
+.back{background:transparent;color:#a8b8ff;padding:8px 0;margin-bottom:6px;width:auto;text-align:left;font-size:16px}
 .empty{color:#666;text-align:center;padding:24px 0;font-size:15px}
 .chip{display:inline-block;background:#1f1f1f;border-radius:20px;padding:8px 14px;font-size:14px;margin-right:8px;margin-bottom:8px;cursor:pointer;border:1px solid #2a2a2a}
 .chip.active{background:#4a6bff;border-color:#4a6bff;color:#fff}
@@ -70,6 +71,8 @@ canvas{width:100%;height:240px;display:block}
 .medal.bronze{border:3px solid #CD7F32}.medal.silver{border:3px solid #C0C0C0}.medal.gold{border:3px solid #D4AF37}.medal.platinum{border:3px solid #E5E4E2}
 .praise{font-size:28px;font-weight:800;color:#4a6bff;text-align:center;margin:8px 0}
 .footer{text-align:center;color:#555;font-size:12px;margin-top:32px}
+.add-btn{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));right:max(16px, calc(50vw - 300px + 16px));width:64px;height:64px;border-radius:50%;background:#4a6bff;color:#fff;border:none;font-size:32px;cursor:pointer;box-shadow:0 4px 12px rgba(74,107,255,.4);display:flex;align-items:center;justify-content:center;z-index:10}
+.add-btn:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -187,7 +190,7 @@ const ACHIEVEMENTS = [
     check: (h, bw) => bw > 0 && maxWeightPart(h, "станов") >= bw * 2.0, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "станов")), Math.floor(bw * 2)] : [0, 1] },
   { id: "deadlift_bw_250", name: "Град-Молот", desc: "Становая ≥ 2.5 × собственный вес", rarity: 2, icon: "🔨", hidden: false,
     check: (h, bw) => bw > 0 && maxWeightPart(h, "станов") >= bw * 2.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "станов")), Math.floor(bw * 2.5)] : [0, 1] },
-  { id: "squat_bw_150", name: "Ноги? Не слышал", desc: "Присед ≥ 1.5 × собственный вес", rarity: 0, icon: "", hidden: false,
+  { id: "squat_bw_150", name: "Ноги? Не слышал", desc: "Присед ≥ 1.5 × собственный вес", rarity: 0, icon: "🦵", hidden: false,
     check: (h, bw) => bw > 0 && maxWeightPart(h, "присед") >= bw * 1.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "присед")), Math.floor(bw * 1.5)] : [0, 1] },
   { id: "squat_bw_200", name: "Полный Гилель", desc: "Присед ≥ 2 × собственный вес", rarity: 2, icon: "🤖", hidden: false,
     check: (h, bw) => bw > 0 && maxWeightPart(h, "присед") >= bw * 2.0, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "присед")), Math.floor(bw * 2)] : [0, 1] },
@@ -195,7 +198,7 @@ const ACHIEVEMENTS = [
     check: (h) => bestTotal3(h) >= 1000, progress: (h) => [Math.floor(bestTotal3(h)), 1000] },
   { id: "total_1500", name: "Полуторатысячник", desc: "Жим + присед + становая ≥ 1500 кг в одной тренировке", rarity: 3, icon: "⭐", hidden: false,
     check: (h) => bestTotal3(h) >= 1500, progress: (h) => [Math.floor(bestTotal3(h)), 1500] },
-  { id: "first_workout", name: "Первый поход в зал", desc: "Первая записанная тренировка", rarity: 0, icon: "", hidden: false,
+  { id: "first_workout", name: "Первый поход в зал", desc: "Первая записанная тренировка", rarity: 0, icon: "🚪", hidden: false,
     check: (h) => h.length > 0, progress: (h) => [h.length, 1] },
   { id: "week_power", name: "Неделя силы", desc: "3 тренировки за одну календарную неделю", rarity: 0, icon: "📅", hidden: false,
     check: (h) => weekKeysWithMin(h, 3).size > 0, progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const k=getWeekIndex(w.start);a[k]=(a[k]||0)+1;return a},{}))), 3] },
@@ -214,9 +217,9 @@ const ACHIEVEMENTS = [
     check: (h) => h.length >= 100, progress: (h) => [h.length, 100] },
   { id: "five_hundred", name: "Пять сотен", desc: "500 тренировок за всё время", rarity: 3, icon: "⚔", hidden: false,
     check: (h) => h.length >= 500, progress: (h) => [h.length, 500] },
-  { id: "volume_monster", name: "Объёмный монстр", desc: "≥ 10 000 кг тоннажа за одну тренировку", rarity: 1, icon: "", hidden: false,
+  { id: "volume_monster", name: "Объёмный монстр", desc: "≥ 10 000 кг тоннажа за одну тренировку", rarity: 1, icon: "📦", hidden: false,
     check: (h) => Math.max(0, ...h.map(volumeOf)) >= 10000, progress: (h) => [Math.floor(Math.max(0, ...h.map(volumeOf))), 10000] },
-  { id: "km_day", name: "Километр за день", desc: "≥ 1000 повторений за один календарный день", rarity: 1, icon: "", hidden: false,
+  { id: "km_day", name: "Километр за день", desc: "≥ 1000 повторений за один календарный день", rarity: 1, icon: "🛣", hidden: false,
     check: (h) => Object.values(h.reduce((a,w)=>{const k=new Date(w.start).toDateString();a[k]=(a[k]||0)+repsOf(w);return a},{})).some(v=>v>=1000),
     progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const k=new Date(w.start).toDateString();a[k]=(a[k]||0)+repsOf(w);return a},{}))), 1000] },
   { id: "thousand_reps", name: "Тысяча повторов", desc: "≥ 1000 повторений за одну тренировку", rarity: 0, icon: "🧮", hidden: false,
@@ -230,9 +233,9 @@ const ACHIEVEMENTS = [
   { id: "full_gym", name: "Полный зал", desc: "За неделю: жим, присед, становая, подтягивания, тяга в наклоне", rarity: 1, icon: "🏋", hidden: false,
     check: (h) => fullGymAnyWeek(h), progress: null },
   { id: "deadpath", name: "Дедпуть", desc: "Тренировка, начавшаяся после 23:00", rarity: 1, icon: "🎭", hidden: true, check: (h) => h.some(w => hourOf(w.start) >= 23), progress: null },
-  { id: "bulkan", name: "Булкан одобряет", desc: "Кот был рядом во время тренировки", rarity: 1, icon: "", hidden: true, check: (h) => h.some(w => w.bulkan), progress: null },
+  { id: "bulkan", name: "Булкан одобряет", desc: "Кот был рядом во время тренировки", rarity: 1, icon: "🐱", hidden: true, check: (h) => h.some(w => w.bulkan), progress: null },
   { id: "nomusic", name: "Без музыки", desc: "Тренировка без музыки", rarity: 1, icon: "🔇", hidden: true, check: (h) => h.some(w => w.nomusic), progress: null },
-  { id: "silence", name: "Тишина", desc: "5 тренировок подряд без музыки", rarity: 2, icon: "", hidden: false, check: (h) => silenceStreak(h), progress: null },
+  { id: "silence", name: "Тишина", desc: "5 тренировок подряд без музыки", rarity: 2, icon: "🎧", hidden: false, check: (h) => silenceStreak(h), progress: null },
   { id: "salamander", name: "Путь саламандры", desc: "Получить все силовые ачивки", rarity: 2, icon: "🐉", hidden: false,
     check: (h, bw, earned) => ["first_hundred","bench_bw_125","bench_bw_150","deadlift_bw_200","deadlift_bw_250","squat_bw_150","squat_bw_200","total_1000"].every(id => earned.has(id)), progress: null },
   { id: "imperial_athlete", name: "Имперский атлет", desc: "Получить все ачивки регулярности", rarity: 3, icon: "🦅", hidden: false,
@@ -308,7 +311,6 @@ const updateTimerUI = () => {
         state.timerAnchorMs = 0;
         stopTicking();
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        if (btn) btn.textContent = "Старт";
       }
     } else {
       currentMs = state.timerAnchorMs + delta;
@@ -378,7 +380,6 @@ const save = () => {
   }
 };
 
-// ЭКСПОРТ ДАННЫХ
 window.exportData = () => {
   const data = {
     history: state.history,
@@ -400,7 +401,6 @@ window.exportData = () => {
   URL.revokeObjectURL(url);
 };
 
-// ИМПОРТ ДАННЫХ
 window.importData = (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -462,29 +462,18 @@ const editorBack = () => {
       type: "saveDraftChoice",
       onSaveToExisting: () => {
         state.drafts = state.drafts.map(d => d.id === state.sourceDraftId ? { ...d, exercises: state.exercises } : d);
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        save();
-        render();
+        state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME";
+        save(); render();
       },
       onSaveAsNew: () => {
         state.dialog = { type: "draftName", initial: "Копия: " + (state.drafts.find(d => d.id === state.sourceDraftId)?.name || "Тренировка"), onConfirm: (name) => {
           state.drafts = [...state.drafts, { id: Date.now(), name: name, createdAt: Date.now(), exercises: state.exercises }];
-          state.sourceDraftId = -1;
-          state.editorMode = false;
-          state.screen = "HOME";
-          save();
-          render();
+          state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME";
+          save(); render();
         }};
         render();
       },
-      onDiscard: () => {
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        render();
-      }
+      onDiscard: () => { state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME"; render(); }
     };
     render();
   } else {
@@ -584,7 +573,6 @@ window.saveDraftName = () => {
 
 window.unsavedSave = () => { const d = state.dialog; state.dialog = null; d.onSave(); };
 window.unsavedDiscard = () => { const d = state.dialog; state.dialog = null; d.onDiscard(); };
-
 window.saveDraftToExisting = () => { const d = state.dialog; state.dialog = null; d.onSaveToExisting(); };
 window.saveDraftAsNew = () => { const d = state.dialog; state.dialog = null; d.onSaveAsNew(); };
 window.discardDraftChanges = () => { const d = state.dialog; state.dialog = null; d.onDiscard(); };
@@ -665,1119 +653,20 @@ window.saveDraftAction = () => {
       type: "saveDraftChoice",
       onSaveToExisting: () => {
         state.drafts = state.drafts.map(d => d.id === state.sourceDraftId ? { ...d, exercises: state.exercises } : d);
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        save();
-        render();
+        state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME";
+        save(); render();
       },
       onSaveAsNew: () => {
         state.dialog = { type: "draftName", initial: "Копия: " + (state.drafts.find(d => d.id === state.sourceDraftId)?.name || "Тренировка"), onConfirm: (name) => {
           state.drafts = [...state.drafts, { id: Date.now(), name: name, createdAt: Date.now(), exercises: state.exercises }];
-          state.sourceDraftId = -1;
-          state.editorMode = false;
-          state.screen = "HOME";
-          save();
-          render();
+          state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME";
+          save(); render();
         }};
         render();
       },
-      onDiscard: () => {
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        render();
-      }
-    };
-    render();
-  } else {
-    state.dialog = { type: "draftName", initial: "Тренировка " + fmtDateShort(), onConfirm: saveDraftAndHome };
-    render();
-  }
-};
-
-const saveDraftAndHome = (name) => {
-  if (state.sourceDraftId >= 0) {
-    state.drafts = state.drafts.map(d => d.id === state.sourceDraftId ? { ...d, exercises: state.exercises } : d);
-  } else {
-    state.drafts = [...state.drafts, { id: Date.now(), name: name || ("Тренировка " + fmtDateShort()), createdAt: Date.now(), exercises: state.exercises }];
-  }
-  state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME";
-  save(); render();
-};
-
-window.openDraftByIndex = (index) => {
-  const d = state.drafts[index];
-  requireNoActive(() => enterEditor(d.exercises, d.id));
-};
-
-window.copyDraftByIndex = (index) => {
-  const d = state.drafts[index];
-  const newDraft = {
-    id: Date.now(),
-    name: "Копия: " + d.name,
-    createdAt: Date.now(),
-    exercises: JSON.parse(JSON.stringify(d.exercises))
-  };
-  state.drafts = [...state.drafts, newDraft];
-  save();
-  render();
-};
-
-window.renameDraftByIndex = (index) => {
-  state.dialog = {
-    type: "renameDraft",
-    draftIndex: index,
-    initial: state.drafts[index].name,
-    onConfirm: (name) => {
-      state.drafts = state.drafts.map((d, i) => i === index ? { ...d, name: name } : d);
-      save();
-      render();
-    }
-  };
-  render();
-};
-
-window.deleteDraftByIndex = (index) => {
-  state.drafts = state.drafts.filter((_, i) => i !== index);
-  save(); render();
-};
-
-window.openHistoryByIndex = (index) => {
-  state.summaryWorkout = state.history[index];
-  state.summaryReturn = 'HISTORY';
-  state.summaryPraise = null;
-  state.lastEarned = [];
-  state.screen = 'SUMMARY';
-  render();
-};
-
-window.deleteHistoryByIndex = (index) => {
-  state.history = state.history.filter((_, i) => i !== index);
-  save(); render();
-};
-
-window.selectExerciseByIndex = (index) => {
-  const names = [...new Set(state.history.flatMap(w => w.exercises.map(e => e.name)))].sort();
-  state.selectedExercise = names[index];
-  render();
-};
-
-window.addBaseExercise = () => {
-  const v = document.getElementById('newEx').value.trim();
-  if (v && !state.exerciseBase.includes(v)) {
-    state.exerciseBase.push(v);
-    save(); render();
-  }
-};
-
-window.deleteBaseByIndex = (index) => {
-  state.exerciseBase = state.exerciseBase.filter((_, i) => i !== index);
-  save(); render();
-};
-
-window.importBaseFromHistory = () => {
-  const names = [...new Set(state.history.flatMap(w => w.exercises.map(e => e.name)))];
-  names.forEach(n => { if (!state.exerciseBase.includes(n)) state.exerciseBase.push(n); });
-  save(); render();
-};
-
-const app = document.getElementById("app");
-const render = () => {
-  document.querySelectorAll('.dialog-bg').forEach(d => d.remove());
-  let html = "";
-  if (state.screen === "HOME") html = renderHome();
-  else if (state.screen === "FUTURE") html = renderFuture();
-  else if (state.screen === "WORKOUT") html = renderWorkout();
-  else if (state.screen === "HISTORY") html = renderHistory();
-  else if (state.screen === "STATS") html = renderStats();
-  else if (state.screen === "SETTINGS") html = renderSettings();
-  else if (state.screen === "BASE") html = renderBase();
-  else if (state.screen === "ACHIEVEMENTS") html = renderAchievements();
-  else if (state.screen === "SUMMARY") html = renderSummary();
-  app.innerHTML = html;
-  if (state.dialog) renderDialog();
-  if (state.screen === "STATS") setTimeout(drawChart, 50);
-  if (state.screen === "WORKOUT") setTimeout(updateTimerUI, 10);
-};
-
-const renderHome = () => `
-  <h1>GymLog</h1>
-  <div class="date">${fmtDateLong()}</div>
-  ${state.active ? `<button class="btn-secondary" style="height:80px;margin-bottom:16px" onclick="continueActive()"><div style="font-size:20px;font-weight:600">▶ Продолжить тренировку</div><div style="font-size:12px;color:#888;margin-top:4px">идёт с ${fmtDateTime(state.active.start)}</div></button>` : ""}
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">Новая тренировка</button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='FUTURE';render()">Будущие тренировки${state.drafts.length ? ` (${state.drafts.length})` : ""}</button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='ACHIEVEMENTS';render()">🏆 Ачивки (${state.earnedAch.size}/${ACHIEVEMENTS.length})</button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='STATS';state.summaryReturn='HOME';render()">Статистика упражнений</button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='HISTORY';state.summaryReturn='HOME';render()">История тренировок</button>
-  <button class="btn-primary" style="height:72px;font-size:22px" onclick="state.screen='SETTINGS';render()">Настройки</button>
-  <div class="footer">Производство: Агафон Дристунцов © 2026</div>
-`;
-
-const renderFuture = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>Будущие тренировки</h2>
-  <button class="btn-primary" style="height:64px;margin-bottom:16px;font-size:18px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">+ Новая</button>
-  ${state.drafts.length === 0 ? '<div class="empty">Пока пусто. Создай черновик и сохрани его здесь.</div>' : ""}
-  ${state.drafts.map((d, i) => `
-    <div class="card" onclick="openDraftByIndex(${i})">
-      <div class="row between">
-        <div style="flex:1"><h3>${d.name}</h3><div class="meta">создана ${fmtDateTime(d.createdAt)} · упражнений: ${d.exercises.length}</div></div>
-      </div>
-      <div class="row" style="margin-top:8px;gap:8px">
-        <button class="btn-small btn-secondary" onclick="event.stopPropagation();renameDraftByIndex(${i})">Переименовать</button>
-        <button class="btn-small btn-secondary" onclick="event.stopPropagation();copyDraftByIndex(${i})">Копировать</button>
-        <button class="btn-small btn-danger" onclick="event.stopPropagation();deleteDraftByIndex(${i})">Удалить</button>
-      </div>
-    </div>
-  `).join("")}
-`;
-
-const renderWorkout = () => {
-  if (state.editorMode) {
-    const draft = state.drafts.find(d => d.id === state.sourceDraftId);
-    return `
-      <button class="back" onclick="editorBack()">← Меню</button>
-      <h2>${draft?.name || "Новая тренировка"}</h2>
-      ${state.exercises.map((ex, ei) => `
-        <div class="card" style="cursor:default">
-          <div class="row between">
-            <h3 style="flex:1">${ex.name}</h3>
-            <button class="icon-btn" onclick="toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
-            <button class="icon-btn" onclick="editExerciseByIndex(${ei})">изм.</button>
-          </div>
-          ${state.expandedExercises.has(ei) ? `
-            ${ex.lines.length === 0 ? '<div class="empty" style="padding:8px 0">Пока нет весов — добавь строку</div>' : ""}
-            ${ex.lines.map((l, li) => `
-              <div class="line-row">
-                <div class="row between">
-                  <button class="icon-btn" style="font-size:17px;padding:4px 0" onclick="state.dialog={type:'editLine',ex:${ei},li:${li},weight:${l.weight},reps:${l.reps},sets:${l.sets.length}};render()">${fmtWeight(l.weight)} кг × ${l.reps}</button>
-                </div>
-                <div class="sets">${l.sets.map((done, si) => `<div class="set ${done?'done':''}" onclick="toggleSet(${ei},${li},${si},${!done})">${si+1}</div>`).join("")}</div>
-              </div>
-            `).join("")}
-            <button class="icon-btn" style="margin-top:8px" onclick="addLine(${ei})">+ вес</button>
-          ` : ""}
-        </div>
-      `).join("")}
-      <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
-      <button class="btn-secondary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="saveDraftAction()">💾 Сохранить черновик</button>
-      <button class="btn-primary" style="height:72px;font-size:22px" onclick="startFromEditor()">▶ Начать тренировку</button>
-    `;
-  } else {
-    return `
-      <button class="back" onclick="activeBack()">← Меню</button>
-      <div class="date">${fmtDateLong()}</div>
-      <div class="card">
-        <div class="row">
-          <div id="timer-val" class="timer-display">${fmtSeconds(state.timerMode === "COUNTDOWN" ? state.presetSeconds : 0)}</div>
-          <div style="flex:1;margin-left:16px">
-            <button id="timer-btn" class="btn-primary" style="height:64px;font-size:20px;margin-bottom:8px" onclick="toggleTimer()">Старт</button>
-            <button class="btn-secondary" style="height:64px;font-size:20px" onclick="resetTimerVisual()">Сброс</button>
-          </div>
-        </div>
-        <div class="timer-mode">режим: ${state.timerMode === "COUNTDOWN" ? "таймер" : "секундомер"}</div>
-      </div>
-      <div class="meta" style="margin-bottom:12px;color:#888;font-size:13px">идёт с ${fmtDateTime(state.active.start)}</div>
-      ${state.exercises.map((ex, ei) => `
-        <div class="card" style="cursor:default">
-          <div class="row between">
-            <h3 style="flex:1">${ex.name}</h3>
-            <button class="icon-btn" onclick="toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
-            <button class="icon-btn" onclick="editExerciseByIndex(${ei})">изм.</button>
-          </div>
-          ${state.expandedExercises.has(ei) ? `
-            ${ex.lines.length === 0 ? '<div class="empty" style="padding:8px 0">Пока нет весов — добавь строку</div>' : ""}
-            ${ex.lines.map((l, li) => `
-              <div class="line-row">
-                <div class="row between">
-                  <button class="icon-btn" style="font-size:17px;padding:4px 0" onclick="state.dialog={type:'editLine',ex:${ei},li:${li},weight:${l.weight},reps:${l.reps},sets:${l.sets.length}};render()">${fmtWeight(l.weight)} кг × ${l.reps}</button>
-                  <button class="icon-btn" style="font-size:18px" onclick="state.dialog={type:'note',ex:${ei},li:${li},note:${JSON.stringify(l.note)}};render()"></button>
-                </div>
-                <div class="sets">${l.sets.map((done, si) => `<div class="set ${done?'done':''}" onclick="toggleSet(${ei},${li},${si},${!done})">${si+1}</div>`).join("")}</div>
-              </div>
-            `).join("")}
-            <button class="icon-btn" style="margin-top:8px" onclick="addLine(${ei})">+ вес</button>
-          ` : ""}
-        </div>
-      `).join("")}
-      <div class="card" style="margin-top:12px;cursor:default">
-        <div class="switch-row" onclick="state.flagBulkan=!state.flagBulkan;render()"><div>🐱 Булкан был рядом</div><div class="switch ${state.flagBulkan?'on':''}"></div></div>
-        <div class="switch-row" onclick="state.flagNomusic=!state.flagNomusic;render()"><div>🔇 Без музыки</div><div class="switch ${state.flagNomusic?'on':''}"></div></div>
-      </div>
-      <button class="btn-primary" style="height:64px;margin-bottom:12px;margin-top:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
-      <button class="btn-primary" style="height:72px;font-size:22px" onclick="finishWorkout()">Закончить тренировку</button>
-    `;
-  }
-};
-
-const renderHistory = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>История</h2>
-  ${state.history.length === 0 ? '<div class="empty">Пока пусто.</div>' : ""}
-  ${state.history.map((sw, i) => `
-    <div class="card" onclick="openHistoryByIndex(${i})">
-      <div class="row between">
-        <div style="flex:1">
-          <h3>${fmtDateTime(sw.start)}</h3>
-          <div class="meta">${setsOf(sw)} подходов · объём ${Math.round(volumeOf(sw))} кг · ${fmtDuration(sw.end - sw.start)}</div>
-          ${sw.bulkan || sw.nomusic ? `<div class="meta">${sw.bulkan?'🐱':''} ${sw.nomusic?'🔇':''}</div>` : ''}
-        </div>
-        <button class="btn-small btn-danger" onclick="event.stopPropagation();deleteHistoryByIndex(${i})">Удалить</button>
-      </div>
-    </div>
-  `).join("")}
-`;
-
-const renderAchievements = () => {
-  const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
-  return `
-    <button class="back" onclick="backAction()">← Меню</button>
-    <h2>Ачивки ${state.earnedAch.size} / ${ACHIEVEMENTS.length}</h2>
-    ${ACHIEVEMENTS.map(d => {
-      const got = state.earnedAch.has(d.id);
-      const hiddenLocked = d.hidden && !got;
-      const rClass = got ? (d.rarity===0?'bronze':d.rarity===1?'silver':d.rarity===2?'gold':'platinum') : '';
-      let progressHtml = '';
-      if (!got && d.progress && !hiddenLocked) {
-        const [cur, target] = d.progress(state.history, bw);
-        const frac = target > 0 ? Math.max(0.02, Math.min(1, cur/target)) : 0.02;
-        progressHtml = `<div style="margin-top:6px"><div style="background:#444;height:8px;border-radius:4px;overflow:hidden"><div style="background:#D4AF37;height:100%;width:${frac*100}%"></div></div><div style="font-size:12px;color:#999;margin-top:4px">${cur} / ${target}</div></div>`;
-      }
-      return `<div class="card" style="cursor:default"><div class="row"><div class="medal ${got?'earned '+rClass:'locked'}">${got ? d.icon : "?"}</div><div style="flex:1;margin-left:12px"><h3 style="color:${got?'#e8e8e8':'#999'}">${hiddenLocked ? "???" : d.name}</h3><div class="meta">${hiddenLocked ? "Скрытая ачивка" : d.desc}</div>${got ? `<div class="meta" style="color:#D4AF37">${rarityName(d.rarity)} · получено</div>` : ""}${progressHtml}</div></div></div>`;
-    }).join("")}
-  `;
-};
-
-const renderStats = () => {
-  const names = [...new Set(state.history.flatMap(w => w.exercises.map(e => e.name)))].sort();
-  if (!state.selectedExercise && names.length) state.selectedExercise = names[0];
-  const dataPoints = state.history.flatMap(w => w.exercises.filter(e => e.name === state.selectedExercise).flatMap(e => e.lines.map(l => [w.start, l.weight]))).sort((a,b) => a[0]-b[0]);
-  const maxWeight = dataPoints.length ? Math.max(...dataPoints.map(p => p[1])) : 0;
-  const sessionsCount = new Set(dataPoints.map(p => p[0])).size;
-  return `
-    <button class="back" onclick="backAction()">← Меню</button>
-    <h2>Статистика</h2>
-    ${names.length === 0 ? '<div class="empty">Нет данных. Заверши хотя бы одну тренировку.</div>' : `
-      <div style="margin-bottom:12px">Упражнение:</div>
-      <div style="margin-bottom:16px;display:flex;flex-wrap:wrap">
-        ${names.map((n, i) => `<span class="chip ${n===state.selectedExercise?'active':''}" onclick="selectExerciseByIndex(${i})">${n}</span>`).join("")}
-      </div>
-      ${dataPoints.length < 2 ? '<div class="empty">Нужно минимум 2 точки для графика</div>' : `
-        <div class="card" style="padding:16px"><canvas id="chart"></canvas></div>
-        <div class="stat-big">Максимальный вес: ${fmtWeight(maxWeight)} кг</div>
-        <div class="stat-small">Тренировок с этим упражнением: ${sessionsCount}</div>
-      `}
-    `}
-  `;
-};
-
-const drawChart = () => {
-  const canvas = document.getElementById("chart");
-  if (!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * devicePixelRatio;
-  canvas.height = 240 * devicePixelRatio;
-  const ctx = canvas.getContext("2d");
-  ctx.scale(devicePixelRatio, devicePixelRatio);
-  const w = rect.width, h = 240, pad = 30;
-  const dataPoints = state.history.flatMap(wk => wk.exercises.filter(e => e.name === state.selectedExercise).flatMap(e => e.lines.map(l => [wk.start, l.weight]))).sort((a,b) => a[0]-b[0]);
-  if (dataPoints.length < 2) return;
-  const minX = dataPoints[0][0], maxX = dataPoints[dataPoints.length-1][0];
-  const minY = Math.min(...dataPoints.map(p => p[1])), maxY = Math.max(...dataPoints.map(p => p[1]));
-  const rangeY = maxY === minY ? 10 : maxY - minY;
-  ctx.strokeStyle = "#2a2a2a"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke();
-  ctx.strokeStyle = "#4a6bff"; ctx.lineWidth = 2; ctx.beginPath();
-  dataPoints.forEach((p, i) => {
-    const x = pad + ((p[0]-minX)/(maxX-minX||1)) * (w-2*pad);
-    const y = h - pad - ((p[1]-minY)/rangeY) * (h-2*pad);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-  ctx.fillStyle = "#4a6bff";
-  dataPoints.forEach(p => {
-    const x = pad + ((p[0]-minX)/(maxX-minX||1)) * (w-2*pad);
-    const y = h - pad - ((p[1]-minY)/rangeY) * (h-2*pad);
-    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
-  });
-};
-
-const renderSettings = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>Настройки</h2>
-  <div class="card"><h3>Мой вес, кг (для ачивок ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;save()" placeholder="Вес, кг" style="margin-top:8px"></div>
-  <div class="card"><button class="btn-secondary" style="height:64px;font-size:18px" onclick="state.screen='BASE';render()">📚 База упражнений</button></div>
-  <div class="card"><h3>Резервная копия данных</h3><div style="margin-top:8px;display:flex;gap:8px"><button class="btn-small btn-primary" onclick="exportData()">Экспорт</button><label class="btn-small btn-secondary" style="cursor:pointer"><input type="file" accept=".json" onchange="importData(event)" style="display:none">Импорт</label></div><div style="color:#888;font-size:12px;margin-top:8px">Экспорт сохраняет все данные в JSON-файл. Импорт восстанавливает из файла.</div></div>
-  <div class="card"><h3>Режим таймера</h3><div class="radio-group"><div class="radio ${state.timerMode==='COUNTDOWN'?'active':''}" onclick="state.timerMode='COUNTDOWN';if(!state.timerRunning)state.timerAnchorMs=state.presetSeconds*1000;save();render()">Таймер</div><div class="radio ${state.timerMode==='STOPWATCH'?'active':''}" onclick="state.timerMode='STOPWATCH';if(!state.timerRunning)state.timerAnchorMs=0;save();render()">Секундомер</div></div></div>
-  <div class="card"><div class="switch-row"><div>Автозапуск после подхода</div><div class="switch ${state.autoStart?'on':''}" onclick="state.autoStart=!state.autoStart;save();render()"></div></div></div>
-  <div class="card"><h3>Пресет отдыха (сек)</h3><div class="radio-group">${[60,90,120,180].map(p => `<div class="radio ${state.presetSeconds===p?'active':''}" onclick="state.presetSeconds=${p};if(state.timerMode==='COUNTDOWN'&&!state.timerRunning)state.timerAnchorMs=${p}*1000;save();render()">${p}</div>`).join("")}</div></div>
-`;
-
-const renderBase = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>База упражнений (${state.exerciseBase.length})</h2>
-  <div class="row" style="margin-bottom:12px"><input id="newEx" type="text" placeholder="Новое упражнение" style="flex:1"><button class="btn-small btn-primary" style="width:auto;margin-left:8px" onclick="addBaseExercise()">Добавить</button></div>
-  <button class="btn-secondary" style="height:56px;margin-bottom:16px;font-size:16px" onclick="importBaseFromHistory()">Импортировать из истории</button>
-  ${state.exerciseBase.length === 0 ? '<div class="empty">Пока пусто.</div>' : ""}
-  ${state.exerciseBase.map((n, i) => `<div class="card" style="padding:12px;cursor:default"><div class="row between"><div style="flex:1">${n}</div><button class="btn-small btn-danger" onclick="deleteBaseByIndex(${i})">Удалить</button></div></div>`).join("")}
-`;
-
-const renderSummary = () => {
-  const sw = state.summaryWorkout;
-  if (!sw) return "";
-  return `
-    <h2>Тренировка завершена</h2>
-    ${state.summaryPraise ? `<div class="praise">${state.summaryPraise}</div>` : ""}
-    <div class="meta">${fmtDateTime(sw.start)}</div>
-    <div class="meta">Длительность: ${fmtDuration(sw.end - sw.start)}</div>
-    ${sw.bulkan || sw.nomusic ? `<div class="meta">${sw.bulkan?'🐱 Булкан был рядом  ':''}${sw.nomusic?'🔇 без музыки':''}</div>` : ''}
-    ${state.lastEarned.length > 0 ? `<div class="card" style="margin:16px 0"><h3>🏆 Получены ачивки:</h3>${state.lastEarned.map(a => `<div class="row" style="margin-top:8px"><div class="medal earned ${a.rarity===0?'bronze':a.rarity===1?'silver':a.rarity===2?'gold':'platinum'}" style="width:44px;height:44px;font-size:20px">${a.icon}</div><div style="margin-left:10px"><div style="font-size:16px">${a.name}</div><div style="font-size:12px;color:#D4AF37">${rarityName(a.rarity)}</div></div></div>`).join("")}</div>` : ""}
-    ${sw.exercises.map(ex => `<div class="card" style="cursor:default"><h3>${ex.name}</h3>${ex.lines.map(l => `<div style="margin-top:4px">${fmtWeight(l.weight)} кг × ${l.reps} — подходов: ${l.done}</div>${l.note ? `<div style="color:#888;font-size:13px;margin-left:8px;margin-top:2px">Заметка: ${l.note}</div>` : ""}`).join("")}</div>`).join("")}
-    <div class="stat-big">Всего: ${setsOf(sw)} подходов, объём ${Math.round(volumeOf(sw))} кг</div>
-    <button class="btn-primary" style="height:72px;margin-top:24px;font-size:22px" onclick="state.screen=state.summaryReturn;render()">ОК</button>
-  `;
-};
-
-const renderDialog = () => {
-  const d = state.dialog;
-  if (!d) return;
-  let content = "";
-  
-  if (d.type === "confirm") {
-    content = `<div class="dialog"><h3>${d.title}</h3><div style="margin-bottom:16px">${d.text}</div><div class="btn-row"><button class="btn-danger" onclick="dialogConfirm()">${d.ok}</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
-  } else if (d.type === "start") {
-    content = `<div class="dialog"><h3>Начать тренировку</h3><div style="margin-bottom:16px">Выбери вариант:</div><div class="btn-row"><button class="btn-primary" onclick="state.dialog=null;enterEditor([],-1)">Чистый шаблон</button><button onclick="state.dialog={type:'copy'};render()">Из истории</button></div></div>`;
-  } else if (d.type === "copy") {
-    content = `<div class="dialog"><h3>Выбери тренировку</h3><div style="max-height:300px;overflow-y:auto;margin-bottom:12px">${state.history.length === 0 ? '<div class="empty">История пуста</div>' : state.history.map((sw, i) => `<div class="card" onclick="pickFromHistory(${i})"><div style="font-size:14px">${fmtDateTime(sw.start)}</div><div class="meta">${setsOf(sw)} подходов · ${sw.exercises.length} упр.</div></div>`).join("")}</div><button onclick="dialogCancel()">Отмена</button></div>`;
-  } else if (d.type === "draftName" || d.type === "renameDraft") {
-    content = `<div class="dialog"><h3>${d.type === "renameDraft" ? "Переименовать тренировку" : "Имя черновика"}</h3><input id="dlg-input" type="text" value="${d.initial}"><div class="btn-row"><button class="btn-primary" onclick="saveDraftName()">Сохранить</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
-  } else if (d.type === "unsaved") {
-    content = `<div class="dialog"><h3>Не сохранено</h3><div style="margin-bottom:16px">Этот черновик ещё не сохранён. Сохранить его в будущие тренировки?</div><div class="btn-row"><button class="btn-primary" onclick="unsavedSave()">Сохранить</button><button onclick="unsavedDiscard()">Не сохранять</button></div></div>`;
-  } else if (d.type === "saveDraftChoice") {
-    content = `<div class="dialog"><h3>Сохранить изменения</h3><div style="margin-bottom:16px">Что сделать с изменениями?</div><div class="btn-row" style="flex-direction:column"><button class="btn-primary" onclick="saveDraftToExisting()">Сохранить в этот черновик</button><button class="btn-secondary" onclick="saveDraftAsNew()">Создать новый черновик</button><button onclick="discardDraftChanges()">Отменить изменения</button></div></div>`;
-  } else if (d.type === "pickExercise") {
-    content = `<div class="dialog"><h3>Выбрать упражнение</h3><div style="max-height:300px;overflow-y:auto;margin-bottom:12px">${state.exerciseBase.length === 0 ? '<div class="empty">База пуста. Наполни её в Настройках.</div>' : state.exerciseBase.map((n, i) => `<div class="card" onclick="pickExerciseByIndex(${i})"><div style="padding:8px">${n}</div></div>`).join("")}</div><div class="btn-row"><button class="btn-primary" onclick="state.dialog={type:'addExercise'};render()">Добавить своё</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
-  } else if (d.type === "addExercise" || d.type === "editExercise") {
-    content = `<div class="dialog"><h3>${d.type === "addExercise" ? "Новое упражнение" : "Упражнение"}</h3><input id="dlg-input" type="text" value="${d.name || ""}"><div class="btn-row"><button class="btn-primary" onclick="saveExName()">Сохранить</button>${d.type === "editExercise" ? `<button class="btn-danger" onclick="deleteEx()">Удалить</button>` : `<button onclick="dialogCancel()">Отмена</button>`}</div></div>`;
-  } else if (d.type === "editLine") {
-    content = `<div class="dialog"><h3>Строка веса</h3><input id="dlg-w" type="text" inputmode="decimal" value="${d.weight}" placeholder="Вес, кг"><input id="dlg-r" type="text" inputmode="numeric" value="${d.reps}" placeholder="Повторения"><input id="dlg-s" type="text" inputmode="numeric" value="${d.sets}" placeholder="Сколько подходов"><div class="btn-row"><button class="btn-primary" onclick="saveLineData()">Сохранить</button><button class="btn-danger" onclick="deleteLineData()">Удалить</button></div></div>`;
-  } else if (d.type === "note") {
-    content = `<div class="dialog"><h3>Заметка к подходу</h3><textarea id="dlg-input">${d.note}</textarea><div class="btn-row"><button class="btn-primary" onclick="saveNoteData()">Сохранить</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
-  }
-  
-  if (content) {
-    const bg = document.createElement("div");
-    bg.className = "dialog-bg";
-    bg.innerHTML = content;
-    bg.onclick = (e) => { if (e.target === bg) { state.dialog = null; render(); } };
-    document.body.appendChild(bg);
-    const inp = document.getElementById("dlg-input");
-    if (inp) { setTimeout(() => { inp.focus(); inp.select(); }, 50); }
-  }
-};
-
-window.toggleExpand = (ei) => {
-  if (state.expandedExercises.has(ei)) state.expandedExercises.delete(ei);
-  else state.expandedExercises.add(ei);
-  render();
-};
-
-if (state.timerMode === "COUNTDOWN") state.timerAnchorMs = state.presetSeconds * 1000;
-render();
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GymLog">
-<meta name="theme-color" content="#0a0a0a">
-<link rel="apple-touch-icon" href="./icon-v2.png?v=2">
-<link rel="icon" type="image/png" href="./icon-v2.png?v=2">
-<link rel="manifest" href="manifest.json">
-<title>GymLog</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4;overscroll-behavior:none}
-body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-#app{max-width:600px;margin:0 auto;padding:16px;min-height:100vh}
-h1{font-size:32px;font-weight:700;margin-bottom:4px}
-h2{font-size:24px;font-weight:600;margin-bottom:12px}
-h3{font-size:18px;font-weight:600;margin-bottom:8px}
-.date{color:#888;font-size:14px;margin-bottom:24px}
-button{background:#2a2a2a;color:#e8e8e8;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:background .15s}
-button:active{background:#3a3a3a}
-.btn-primary{background:#4a6bff;color:#fff}
-.btn-primary:active{background:#3a5bef}
-.btn-secondary{background:#1f2a44;color:#a8b8ff}
-.btn-danger{background:#3a1f1f;color:#ff8a8a}
-.btn-row{display:flex;gap:8px}
-.btn-row button{flex:1}
-.btn-small{padding:8px 12px;font-size:14px;width:auto}
-.card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer}
-.card h3{margin-bottom:4px}
-.card .meta{color:#888;font-size:13px;margin-bottom:8px}
-.row{display:flex;align-items:center;gap:8px}
-.row.between{justify-content:space-between}
-.sets{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.set{width:44px;height:44px;border-radius:10px;background:#1f1f1f;border:2px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666;cursor:pointer;font-weight:600}
-.set.done{background:#2a4a2a;border-color:#4a8a4a;color:#8aff8a}
-.line-row{padding:8px 0;border-bottom:1px solid #1f1f1f}
-.line-row:last-child{border-bottom:none}
-.timer-display{font-size:64px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px}
-.timer-mode{color:#888;font-size:13px;margin-top:4px}
-.dialog-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px)}
-.dialog{background:#1a1a1a;border-radius:16px;padding:20px;width:100%;max-width:400px;border:1px solid #333}
-.dialog h3{margin-bottom:12px}
-.dialog input,.dialog textarea{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:12px;color:#e8e8e8;font-size:16px;margin-bottom:12px;font-family:inherit}
-.dialog input:focus,.dialog textarea:focus{outline:none;border-color:#4a6bff}
-.dialog textarea{min-height:80px;resize:vertical}
-.dialog .btn-row{margin-top:8px}
-.back{background:transparent;color:#a8b8ff;padding:8px 0;margin-bottom:8px;width:auto;text-align:left;font-size:16px}
-.empty{color:#666;text-align:center;padding:24px 0;font-size:15px}
-.chip{display:inline-block;background:#1f1f1f;border-radius:20px;padding:8px 14px;font-size:14px;margin-right:8px;margin-bottom:8px;cursor:pointer;border:1px solid #2a2a2a}
-.chip.active{background:#4a6bff;border-color:#4a6bff;color:#fff}
-canvas{width:100%;height:240px;display:block}
-.stat-big{font-size:20px;font-weight:600;margin-top:8px}
-.stat-small{color:#888;font-size:14px}
-.icon-btn{background:transparent;width:auto;padding:4px 8px;font-size:14px;color:#a8b8ff}
-.radio-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.radio{padding:10px 16px;background:#1f1f1f;border-radius:10px;cursor:pointer;border:1px solid #2a2a2a;font-size:15px}
-.radio.active{background:#4a6bff;border-color:#4a6bff;color:#fff}
-.switch-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
-.switch{width:48px;height:28px;background:#2a2a2a;border-radius:14px;position:relative;cursor:pointer;transition:background .2s}
-.switch.on{background:#4a6bff}
-.switch::after{content:"";position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
-.switch.on::after{left:23px}
-.medal{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;flex-shrink:0}
-.medal.earned{background:#1E1E1E;color:#fff}
-.medal.locked{background:#333;color:#777}
-.medal.bronze{border:3px solid #CD7F32}.medal.silver{border:3px solid #C0C0C0}.medal.gold{border:3px solid #D4AF37}.medal.platinum{border:3px solid #E5E4E2}
-.praise{font-size:28px;font-weight:800;color:#4a6bff;text-align:center;margin:8px 0}
-.footer{text-align:center;color:#555;font-size:12px;margin-top:32px}
-</style>
-</head>
-<body>
-<div id="app"></div>
-<script>
-const LS = {
-  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
-  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
-};
-
-const fmtDateLong = (d = new Date()) => {
-  const s = d.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
-const fmtDateShort = (d = new Date()) => {
-  const s = d.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
-const fmtDateTime = (ms) => {
-  const d = new Date(ms);
-  const s = d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }) + ", " +
-            d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
-const fmtDuration = (ms) => {
-  const min = Math.floor(ms / 60000);
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
-};
-const fmtWeight = (w) => w % 1 === 0 ? w.toString() : w.toString();
-const fmtSeconds = (s) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-const resizeSets = (sets, n) => Array.from({length: n}, (_, i) => i < sets.length ? sets[i] : false);
-const setsOf = (w) => w.exercises.reduce((a, e) => a + e.lines.reduce((b, l) => b + l.done, 0), 0);
-const volumeOf = (w) => w.exercises.reduce((a, e) => a + e.lines.reduce((b, l) => b + l.weight * l.reps * l.done, 0), 0);
-const repsOf = (w) => w.exercises.reduce((a, e) => a + e.lines.reduce((b, l) => b + l.reps * l.done, 0), 0);
-const rarityName = (r) => ["бронза", "серебро", "золото", "платина"][r] || "";
-
-const isBenchName = (name) => {
-  const n = name.toLowerCase();
-  return n.includes("жим") && !n.includes("стоя") && !n.includes("сидя") && !n.includes("наклон");
-};
-const maxBenchWeight = (h) => Math.max(0, ...h.flatMap(w => w.exercises.filter(e => isBenchName(e.name)).flatMap(e => e.lines.map(l => l.weight))));
-const maxWeightPart = (h, part) => Math.max(0, ...h.flatMap(w => w.exercises.filter(e => e.name.toLowerCase().includes(part)).flatMap(e => e.lines.map(l => l.weight))));
-const bestTotal3 = (h) => Math.max(0, ...h.map(w => {
-  const bench = Math.max(0, ...(w.exercises.filter(e => isBenchName(e.name)).flatMap(e => e.lines.map(l => l.weight))));
-  const squat = Math.max(0, ...(w.exercises.filter(e => e.name.toLowerCase().includes("присед")).flatMap(e => e.lines.map(l => l.weight))));
-  const dead = Math.max(0, ...(w.exercises.filter(e => e.name.toLowerCase().includes("станов")).flatMap(e => e.lines.map(l => l.weight))));
-  return bench + squat + dead;
-}));
-const getWeekIndex = (millis) => {
-  const d = new Date(millis);
-  const day = d.getDay() === 0 ? 7 : d.getDay();
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const mondayMs = d.getTime() - (day - 1) * msPerDay;
-  return Math.floor(mondayMs / (7 * msPerDay));
-};
-const longestChain = (idxs) => {
-  if (!idxs || idxs.size === 0) return 0;
-  const sorted = Array.from(idxs).sort((a,b) => a-b);
-  let best = 1, cur = 1;
-  for (let i = 1; i < sorted.length; i++) {
-    cur = (sorted[i] === sorted[i-1] + 1) ? cur + 1 : 1;
-    best = Math.max(best, cur);
-  }
-  return best;
-};
-const weekKeysWithMin = (h, min, dayOfWeek = null) => {
-  const filtered = dayOfWeek ? h.filter(w => {
-    const d = new Date(w.start);
-    const dw = d.getDay() === 0 ? 7 : d.getDay();
-    return dw === dayOfWeek;
-  }) : h;
-  const grouped = filtered.reduce((acc, w) => {
-    const wk = getWeekIndex(w.start);
-    if (!acc[wk]) acc[wk] = 0;
-    acc[wk]++;
-    return acc;
-  }, {});
-  return new Set(Object.entries(grouped).filter(([k, v]) => v >= min).map(([k]) => parseInt(k)));
-};
-const fullGymAnyWeek = (h) => {
-  const parts = ["присед", "станов", "подтяг", "наклон"];
-  const grouped = h.reduce((acc, w) => {
-    const wk = getWeekIndex(w.start);
-    if (!acc[wk]) acc[wk] = [];
-    acc[wk].push(w);
-    return acc;
-  }, {});
-  return Object.values(grouped).some(ws => {
-    const names = ws.flatMap(w => w.exercises.map(e => e.name.toLowerCase()));
-    const bench = ws.some(w => w.exercises.some(e => isBenchName(e.name)));
-    return bench && parts.every(p => names.some(n => n.includes(p)));
-  });
-};
-const silenceStreak = (h) => {
-  const chron = [...h].sort((a,b) => a.start - b.start);
-  if (chron.length < 5) return false;
-  for (let i = 0; i <= chron.length - 5; i++) {
-    if (chron.slice(i, i+5).every(w => w.nomusic)) return true;
-  }
-  return false;
-};
-const hourOf = (millis) => new Date(millis).getHours();
-const distinctNames = (h) => new Set(h.flatMap(w => w.exercises.map(e => e.name))).size;
-
-const ACHIEVEMENTS = [
-  { id: "first_hundred", name: "Первая сотня", desc: "Жим штанги лёжа ≥ 100 кг", rarity: 0, icon: "💯", hidden: false,
-    check: (h, bw) => maxBenchWeight(h) >= 100, progress: (h) => [Math.floor(maxBenchWeight(h)), 100] },
-  { id: "bench_bw_125", name: "Резидент жима", desc: "Жим лёжа ≥ 1.25 × собственный вес", rarity: 1, icon: "🧟", hidden: false,
-    check: (h, bw) => bw > 0 && maxBenchWeight(h) >= bw * 1.25, progress: (h, bw) => bw > 0 ? [Math.floor(maxBenchWeight(h)), Math.floor(bw * 1.25)] : [0, 1] },
-  { id: "bench_bw_150", name: "Скулы Императора", desc: "Жим лёжа ≥ 1.5 × собственный вес", rarity: 2, icon: "💀", hidden: false,
-    check: (h, bw) => bw > 0 && maxBenchWeight(h) >= bw * 1.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxBenchWeight(h)), Math.floor(bw * 1.5)] : [0, 1] },
-  { id: "deadlift_bw_200", name: "Тиран лифта", desc: "Становая ≥ 2 × собственный вес", rarity: 1, icon: "🦖", hidden: false,
-    check: (h, bw) => bw > 0 && maxWeightPart(h, "станов") >= bw * 2.0, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "станов")), Math.floor(bw * 2)] : [0, 1] },
-  { id: "deadlift_bw_250", name: "Град-Молот", desc: "Становая ≥ 2.5 × собственный вес", rarity: 2, icon: "🔨", hidden: false,
-    check: (h, bw) => bw > 0 && maxWeightPart(h, "станов") >= bw * 2.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "станов")), Math.floor(bw * 2.5)] : [0, 1] },
-  { id: "squat_bw_150", name: "Ноги? Не слышал", desc: "Присед ≥ 1.5 × собственный вес", rarity: 0, icon: "", hidden: false,
-    check: (h, bw) => bw > 0 && maxWeightPart(h, "присед") >= bw * 1.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "присед")), Math.floor(bw * 1.5)] : [0, 1] },
-  { id: "squat_bw_200", name: "Полный Гилель", desc: "Присед ≥ 2 × собственный вес", rarity: 2, icon: "🤖", hidden: false,
-    check: (h, bw) => bw > 0 && maxWeightPart(h, "присед") >= bw * 2.0, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "присед")), Math.floor(bw * 2)] : [0, 1] },
-  { id: "total_1000", name: "Тысячник", desc: "Жим + присед + становая ≥ 1000 кг в одной тренировке", rarity: 2, icon: "🔢", hidden: false,
-    check: (h) => bestTotal3(h) >= 1000, progress: (h) => [Math.floor(bestTotal3(h)), 1000] },
-  { id: "total_1500", name: "Полуторатысячник", desc: "Жим + присед + становая ≥ 1500 кг в одной тренировке", rarity: 3, icon: "⭐", hidden: false,
-    check: (h) => bestTotal3(h) >= 1500, progress: (h) => [Math.floor(bestTotal3(h)), 1500] },
-  { id: "first_workout", name: "Первый поход в зал", desc: "Первая записанная тренировка", rarity: 0, icon: "", hidden: false,
-    check: (h) => h.length > 0, progress: (h) => [h.length, 1] },
-  { id: "week_power", name: "Неделя силы", desc: "3 тренировки за одну календарную неделю", rarity: 0, icon: "📅", hidden: false,
-    check: (h) => weekKeysWithMin(h, 3).size > 0, progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const k=getWeekIndex(w.start);a[k]=(a[k]||0)+1;return a},{}))), 3] },
-  { id: "iron_month", name: "Железный месяц", desc: "20 тренировок за календарный месяц", rarity: 1, icon: "🛡", hidden: false,
-    check: (h) => Object.values(h.reduce((a,w)=>{const d=new Date(w.start);const k=d.getFullYear()*12+d.getMonth();a[k]=(a[k]||0)+1;return a},{})).some(v=>v>=20),
-    progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const d=new Date(w.start);const k=d.getFullYear()*12+d.getMonth();a[k]=(a[k]||0)+1;return a},{}))), 20] },
-  { id: "unbreakable", name: "Несгибаемый", desc: "4 недели подряд, в каждой ≥ 3 тренировок", rarity: 1, icon: "🔩", hidden: false,
-    check: (h) => longestChain(weekKeysWithMin(h, 3)) >= 4, progress: (h) => [longestChain(weekKeysWithMin(h, 3)), 4] },
-  { id: "immortal", name: "Бессмертный", desc: "52 недели подряд без пустой недели", rarity: 2, icon: "🏛", hidden: false,
-    check: (h) => longestChain(weekKeysWithMin(h, 1)) >= 52, progress: (h) => [longestChain(weekKeysWithMin(h, 1)), 52] },
-  { id: "monday_hero", name: "Понедельничный герой", desc: "10 недель подряд с тренировкой в понедельник", rarity: 1, icon: "⏰", hidden: false,
-    check: (h) => longestChain(weekKeysWithMin(h, 1, 1)) >= 10, progress: (h) => [longestChain(weekKeysWithMin(h, 1, 1)), 10] },
-  { id: "sunday_priest", name: "Воскресный жрец", desc: "10 недель подряд с тренировкой в воскресенье", rarity: 1, icon: "⛪", hidden: false,
-    check: (h) => longestChain(weekKeysWithMin(h, 1, 7)) >= 10, progress: (h) => [longestChain(weekKeysWithMin(h, 1, 7)), 10] },
-  { id: "hundred_workouts", name: "Сотка тренира", desc: "100 тренировок за всё время", rarity: 2, icon: "🔥", hidden: false,
-    check: (h) => h.length >= 100, progress: (h) => [h.length, 100] },
-  { id: "five_hundred", name: "Пять сотен", desc: "500 тренировок за всё время", rarity: 3, icon: "⚔", hidden: false,
-    check: (h) => h.length >= 500, progress: (h) => [h.length, 500] },
-  { id: "volume_monster", name: "Объёмный монстр", desc: "≥ 10 000 кг тоннажа за одну тренировку", rarity: 1, icon: "", hidden: false,
-    check: (h) => Math.max(0, ...h.map(volumeOf)) >= 10000, progress: (h) => [Math.floor(Math.max(0, ...h.map(volumeOf))), 10000] },
-  { id: "km_day", name: "Километр за день", desc: "≥ 1000 повторений за один календарный день", rarity: 1, icon: "", hidden: false,
-    check: (h) => Object.values(h.reduce((a,w)=>{const k=new Date(w.start).toDateString();a[k]=(a[k]||0)+repsOf(w);return a},{})).some(v=>v>=1000),
-    progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const k=new Date(w.start).toDateString();a[k]=(a[k]||0)+repsOf(w);return a},{}))), 1000] },
-  { id: "thousand_reps", name: "Тысяча повторов", desc: "≥ 1000 повторений за одну тренировку", rarity: 0, icon: "🧮", hidden: false,
-    check: (h) => Math.max(0, ...h.map(repsOf)) >= 1000, progress: (h) => [Math.max(0, ...h.map(repsOf)), 1000] },
-  { id: "marathon", name: "Марафонец", desc: "Тренировка длительностью 2 часа и больше", rarity: 2, icon: "⏱", hidden: false,
-    check: (h) => Math.max(0, ...h.map(w => w.end - w.start)) >= 2 * 3600 * 1000, progress: (h) => [Math.floor(Math.max(0, ...h.map(w => (w.end - w.start)/60000))), 120] },
-  { id: "scout", name: "Разведчик", desc: "8 разных упражнений в истории", rarity: 0, icon: "🔭", hidden: false,
-    check: (h) => distinctNames(h) >= 8, progress: (h) => [distinctNames(h), 8] },
-  { id: "collector", name: "Коллекционер", desc: "30 разных упражнений в истории", rarity: 1, icon: "📚", hidden: false,
-    check: (h) => distinctNames(h) >= 30, progress: (h) => [distinctNames(h), 30] },
-  { id: "full_gym", name: "Полный зал", desc: "За неделю: жим, присед, становая, подтягивания, тяга в наклоне", rarity: 1, icon: "🏋", hidden: false,
-    check: (h) => fullGymAnyWeek(h), progress: null },
-  { id: "deadpath", name: "Дедпуть", desc: "Тренировка, начавшаяся после 23:00", rarity: 1, icon: "🎭", hidden: true, check: (h) => h.some(w => hourOf(w.start) >= 23), progress: null },
-  { id: "bulkan", name: "Булкан одобряет", desc: "Кот был рядом во время тренировки", rarity: 1, icon: "", hidden: true, check: (h) => h.some(w => w.bulkan), progress: null },
-  { id: "nomusic", name: "Без музыки", desc: "Тренировка без музыки", rarity: 1, icon: "🔇", hidden: true, check: (h) => h.some(w => w.nomusic), progress: null },
-  { id: "silence", name: "Тишина", desc: "5 тренировок подряд без музыки", rarity: 2, icon: "", hidden: false, check: (h) => silenceStreak(h), progress: null },
-  { id: "salamander", name: "Путь саламандры", desc: "Получить все силовые ачивки", rarity: 2, icon: "🐉", hidden: false,
-    check: (h, bw, earned) => ["first_hundred","bench_bw_125","bench_bw_150","deadlift_bw_200","deadlift_bw_250","squat_bw_150","squat_bw_200","total_1000"].every(id => earned.has(id)), progress: null },
-  { id: "imperial_athlete", name: "Имперский атлет", desc: "Получить все ачивки регулярности", rarity: 3, icon: "🦅", hidden: false,
-    check: (h, bw, earned) => ["first_workout","week_power","iron_month","unbreakable","immortal","monday_hero","sunday_priest","hundred_workouts","five_hundred"].every(id => earned.has(id)), progress: null },
-  { id: "pokedex", name: "Полный покедекс", desc: "Получить все бронзовые ачивки", rarity: 3, icon: "🏆", hidden: false,
-    check: (h, bw, earned) => ACHIEVEMENTS.filter(a => a.rarity === 0 && a.id !== "pokedex").every(a => earned.has(a.id)), progress: null }
-];
-
-const evaluateNew = (history, bw, earnedSet) => {
-  const out = [];
-  for (const d of ACHIEVEMENTS) {
-    if (!earnedSet.has(d.id) && d.check(history, bw, earnedSet)) {
-      earnedSet.add(d.id);
-      out.push(d);
-    }
-  }
-  return out;
-};
-
-const state = {
-  screen: "HOME",
-  exercises: [],
-  history: LS.get("history", []),
-  drafts: LS.get("drafts", []),
-  active: LS.get("active", null),
-  exerciseBase: LS.get("exerciseBase", []),
-  earnedAch: new Set(Object.keys(LS.get("earnedAch", {}))),
-  bodyWeightText: LS.get("bodyWeight", ""),
-  timerMode: LS.get("timerMode", "COUNTDOWN"),
-  autoStart: LS.get("autoStart", true),
-  presetSeconds: LS.get("presetSeconds", 90),
-  timerRunning: false,
-  timerAnchorTime: 0,
-  timerAnchorMs: 0,
-  editorMode: false,
-  sourceDraftId: -1,
-  expandedExercises: new Set(),
-  summaryWorkout: null,
-  summaryReturn: "HOME",
-  summaryPraise: null,
-  lastEarned: [],
-  dialog: null,
-  selectedExercise: "",
-  flagBulkan: false,
-  flagNomusic: false
-};
-
-if (!LS.get("achRetro", false)) {
-  const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
-  const newOnes = evaluateNew(state.history, bw, state.earnedAch);
-  if (newOnes.length > 0) {
-    const obj = LS.get("earnedAch", {});
-    newOnes.forEach(a => obj[a.id] = Date.now());
-    LS.set("earnedAch", obj);
-  }
-  LS.set("achRetro", true);
-}
-
-let tickInterval = null;
-
-const updateTimerUI = () => {
-  const el = document.getElementById('timer-val');
-  const btn = document.getElementById('timer-btn');
-  if (!el) return;
-  const now = Date.now();
-  let currentMs = state.timerAnchorMs;
-  if (state.timerRunning) {
-    const delta = now - state.timerAnchorTime;
-    if (state.timerMode === "COUNTDOWN") {
-      currentMs = Math.max(0, state.timerAnchorMs - delta);
-      if (currentMs <= 0) {
-        state.timerRunning = false;
-        state.timerAnchorMs = 0;
-        stopTicking();
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        if (btn) btn.textContent = "Старт";
-      }
-    } else {
-      currentMs = state.timerAnchorMs + delta;
-    }
-  }
-  el.textContent = fmtSeconds(Math.floor(currentMs / 1000));
-  if (btn) btn.textContent = state.timerRunning ? "Пауза" : "Старт";
-};
-
-const startTicking = () => {
-  if (tickInterval) return;
-  updateTimerUI();
-  tickInterval = setInterval(updateTimerUI, 100);
-};
-
-const stopTicking = () => {
-  if (tickInterval) { clearInterval(tickInterval); tickInterval = null; }
-};
-
-window.toggleTimer = () => {
-  if (state.timerRunning) {
-    const now = Date.now();
-    const delta = now - state.timerAnchorTime;
-    state.timerAnchorMs = state.timerMode === "COUNTDOWN"
-      ? Math.max(0, state.timerAnchorMs - delta)
-      : state.timerAnchorMs + delta;
-    state.timerRunning = false;
-    stopTicking();
-  } else {
-    state.timerAnchorTime = Date.now();
-    if (state.timerMode === "COUNTDOWN" && state.timerAnchorMs <= 0) {
-      state.timerAnchorMs = state.presetSeconds * 1000;
-    }
-    state.timerRunning = true;
-    startTicking();
-  }
-  updateTimerUI();
-};
-
-window.resetTimerVisual = () => {
-  state.timerRunning = false;
-  stopTicking();
-  state.timerAnchorMs = state.timerMode === "COUNTDOWN" ? state.presetSeconds * 1000 : 0;
-  updateTimerUI();
-};
-
-const startTimerFresh = () => {
-  state.timerAnchorTime = Date.now();
-  state.timerAnchorMs = state.timerMode === "COUNTDOWN" ? state.presetSeconds * 1000 : 0;
-  state.timerRunning = true;
-  startTicking();
-};
-
-const save = () => {
-  LS.set("history", state.history);
-  LS.set("drafts", state.drafts);
-  LS.set("exerciseBase", state.exerciseBase);
-  LS.set("timerMode", state.timerMode);
-  LS.set("autoStart", state.autoStart);
-  LS.set("presetSeconds", state.presetSeconds);
-  LS.set("bodyWeight", state.bodyWeightText);
-  const achObj = {};
-  state.earnedAch.forEach(id => achObj[id] = Date.now());
-  LS.set("earnedAch", achObj);
-  if (state.screen === "WORKOUT" && !state.editorMode && state.active) {
-    LS.set("active", { start: state.active.start, exercises: state.exercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic });
-  }
-};
-
-// ЭКСПОРТ ДАННЫХ
-window.exportData = () => {
-  const data = {
-    history: state.history,
-    drafts: state.drafts,
-    exerciseBase: state.exerciseBase,
-    earnedAch: Array.from(state.earnedAch),
-    bodyWeight: state.bodyWeightText,
-    timerMode: state.timerMode,
-    autoStart: state.autoStart,
-    presetSeconds: state.presetSeconds,
-    exportDate: new Date().toISOString()
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `gymlog-backup-${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-// ИМПОРТ ДАННЫХ
-window.importData = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data.history) state.history = data.history;
-      if (data.drafts) state.drafts = data.drafts;
-      if (data.exerciseBase) state.exerciseBase = data.exerciseBase;
-      if (data.earnedAch) state.earnedAch = new Set(data.earnedAch);
-      if (data.bodyWeight !== undefined) state.bodyWeightText = data.bodyWeight;
-      if (data.timerMode) state.timerMode = data.timerMode;
-      if (data.autoStart !== undefined) state.autoStart = data.autoStart;
-      if (data.presetSeconds) state.presetSeconds = data.presetSeconds;
-      save();
-      alert('Данные восстановлены!');
-      render();
-    } catch (err) {
-      alert('Ошибка импорта: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-};
-
-const enterEditor = (list, sourceId) => {
-  state.exercises = list.map(e => ({...e, lines: e.lines.map(l => ({...l, sets: l.sets.map(()=>false)}))}));
-  state.sourceDraftId = sourceId;
-  state.editorMode = true;
-  resetTimerVisual();
-  state.screen = "WORKOUT";
-  render();
-};
-
-const requireNoActive = (action) => {
-  if (state.active) {
-    state.dialog = {
-      type: "confirm", title: "Тренировка идёт",
-      text: `Уже есть начатая тренировка (с ${fmtDateTime(state.active.start)}). Удалить её и продолжить?`,
-      ok: "Удалить и продолжить",
-      onOk: () => { state.active = null; LS.set("active", null); action(); }
-    };
-    render();
-  } else action();
-};
-
-const startFromEditor = () => {
-  state.active = { start: Date.now(), exercises: state.exercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic };
-  LS.set("active", state.active);
-  state.editorMode = false;
-  state.sourceDraftId = -1;
-  resetTimerVisual();
-  render();
-};
-
-const editorBack = () => {
-  if (state.sourceDraftId >= 0) {
-    state.dialog = {
-      type: "saveDraftChoice",
-      onSaveToExisting: () => {
-        state.drafts = state.drafts.map(d => d.id === state.sourceDraftId ? { ...d, exercises: state.exercises } : d);
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        save();
-        render();
-      },
-      onSaveAsNew: () => {
-        state.dialog = { type: "draftName", initial: "Копия: " + (state.drafts.find(d => d.id === state.sourceDraftId)?.name || "Тренировка"), onConfirm: (name) => {
-          state.drafts = [...state.drafts, { id: Date.now(), name: name, createdAt: Date.now(), exercises: state.exercises }];
-          state.sourceDraftId = -1;
-          state.editorMode = false;
-          state.screen = "HOME";
-          save();
-          render();
-        }};
-        render();
-      },
-      onDiscard: () => {
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        render();
-      }
-    };
-    render();
-  } else {
-    state.dialog = {
-      type: "unsaved",
-      onSave: () => { state.dialog = { type: "draftName", initial: "Тренировка " + fmtDateShort(), onConfirm: saveDraftAndHome }; render(); },
       onDiscard: () => { state.sourceDraftId = -1; state.editorMode = false; state.screen = "HOME"; render(); }
     };
     render();
-  }
-};
-
-const activeBack = () => {
-  LS.set("active", { start: state.active.start, exercises: state.exercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic });
-  state.screen = "HOME"; render();
-};
-
-const continueActive = () => {
-  if (!state.active) return;
-  state.exercises = state.active.exercises;
-  state.flagBulkan = state.active.bulkan || false;
-  state.flagNomusic = state.active.nomusic || false;
-  state.editorMode = false; state.sourceDraftId = -1;
-  resetTimerVisual(); state.screen = "WORKOUT"; render();
-};
-
-const backAction = () => {
-  if (state.screen === "WORKOUT") state.editorMode ? editorBack() : activeBack();
-  else if (state.screen === "SUMMARY" || state.screen === "STATS") { state.screen = state.summaryReturn; render(); }
-  else { state.screen = "HOME"; render(); }
-};
-
-const toggleSet = (ei, li, si, done) => {
-  state.exercises = state.exercises.map((ex, i) => {
-    if (i !== ei) return ex;
-    return { ...ex, lines: ex.lines.map((l, j) => {
-      if (j !== li) return l;
-      return { ...l, sets: l.sets.map((s, k) => k === si ? done : s) };
-    })};
-  });
-  if (done && state.autoStart) startTimerFresh();
-  save(); render();
-};
-
-const addLine = (ei) => {
-  state.exercises = state.exercises.map((ex, i) => {
-    if (i !== ei) return ex;
-    const last = ex.lines[ex.lines.length - 1];
-    return { ...ex, lines: [...ex.lines, { weight: last?.weight || 0, reps: last?.reps || 5, sets: [false], note: "" }] };
-  });
-  save(); render();
-};
-
-const finishWorkout = () => {
-  const savedExercises = state.exercises.map(ex => {
-    const lines = ex.lines.map(l => ({ weight: l.weight, reps: l.reps, done: l.sets.filter(Boolean).length, note: l.note })).filter(l => l.done > 0);
-    return lines.length ? { name: ex.name, lines } : null;
-  }).filter(Boolean);
-  if (!savedExercises.length) { alert("Не отмечено ни одного подхода"); return; }
-  const sw = { start: state.active.start, end: Date.now(), exercises: savedExercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic };
-  state.history = [sw, ...state.history];
-  const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
-  const newAch = evaluateNew(state.history, bw, state.earnedAch);
-  if (newAch.length > 0) {
-    const obj = LS.get("earnedAch", {});
-    newAch.forEach(a => obj[a.id] = Date.now());
-    LS.set("earnedAch", obj);
-  }
-  state.active = null; LS.set("active", null);
-  state.exercises = []; state.flagBulkan = false; state.flagNomusic = false;
-  resetTimerVisual();
-  state.summaryWorkout = sw;
-  state.summaryPraise = ["КРАСАВЧИК ЖИЕСЬ", "МАШИНА", "ЧО ЗА ЛЕВ", "ГРЁБАНАЯ ЛЕГЕНДА", "АУФФФФФ"][Math.floor(Math.random()*5)];
-  state.lastEarned = newAch; state.summaryReturn = "HOME"; state.screen = "SUMMARY";
-  save(); render();
-};
-
-window.dialogConfirm = () => { const d = state.dialog; state.dialog = null; if(d && d.onOk) d.onOk(); render(); };
-window.dialogCancel = () => { state.dialog = null; render(); };
-
-window.pickFromHistory = (index) => {
-  const sw = state.history[index];
-  const exList = sw.exercises.map(e => ({
-    name: e.name,
-    lines: e.lines.map(l => ({ weight: l.weight, reps: l.reps, sets: Array(l.done).fill(false), note: "" }))
-  }));
-  state.dialog = null;
-  enterEditor(exList, -1);
-};
-
-window.saveDraftName = () => {
-  const d = state.dialog;
-  const v = document.getElementById('dlg-input').value.trim() || d.initial;
-  state.dialog = null;
-  d.onConfirm(v);
-};
-
-window.unsavedSave = () => { const d = state.dialog; state.dialog = null; d.onSave(); };
-window.unsavedDiscard = () => { const d = state.dialog; state.dialog = null; d.onDiscard(); };
-
-window.saveDraftToExisting = () => { const d = state.dialog; state.dialog = null; d.onSaveToExisting(); };
-window.saveDraftAsNew = () => { const d = state.dialog; state.dialog = null; d.onSaveAsNew(); };
-window.discardDraftChanges = () => { const d = state.dialog; state.dialog = null; d.onDiscard(); };
-
-window.editExerciseByIndex = (ei) => {
-  state.dialog = { type: 'editExercise', editIndex: ei, name: state.exercises[ei].name };
-  render();
-};
-
-window.pickExerciseByIndex = (index) => {
-  const name = state.exerciseBase[index];
-  state.exercises = [...state.exercises, { name: name, lines: [] }];
-  state.dialog = null; save(); render();
-};
-
-window.saveExName = () => {
-  const d = state.dialog;
-  const v = document.getElementById('dlg-input').value.trim();
-  state.dialog = null;
-  if (v) {
-    if (d.editIndex >= 0) {
-      state.exercises = state.exercises.map((e, i) => i === d.editIndex ? { ...e, name: v } : e);
-    } else {
-      state.exercises = [...state.exercises, { name: v, lines: [] }];
-    }
-    save();
-  }
-  render();
-};
-
-window.deleteEx = () => {
-  const idx = state.dialog.editIndex;
-  state.dialog = null;
-  state.exercises = state.exercises.filter((_, i) => i !== idx);
-  save(); render();
-};
-
-window.saveLineData = () => {
-  const d = state.dialog;
-  const w = parseFloat(document.getElementById('dlg-w').value.replace(',','.')) || 0;
-  const r = parseInt(document.getElementById('dlg-r').value) || 1;
-  const s = Math.max(1, Math.min(12, parseInt(document.getElementById('dlg-s').value) || 1));
-  state.dialog = null;
-  state.exercises = state.exercises.map((ex, i) => {
-    if (i !== d.ex) return ex;
-    return { ...ex, lines: ex.lines.map((l, j) => {
-      if (j !== d.li) return l;
-      return { ...l, weight: w, reps: r, sets: resizeSets(l.sets, s) };
-    })};
-  });
-  save(); render();
-};
-
-window.deleteLineData = () => {
-  const d = state.dialog;
-  state.dialog = null;
-  state.exercises = state.exercises.map((ex, i) => {
-    if (i !== d.ex) return ex;
-    return { ...ex, lines: ex.lines.filter((_, j) => j !== d.li) };
-  });
-  save(); render();
-};
-
-window.saveNoteData = () => {
-  const d = state.dialog;
-  const note = document.getElementById('dlg-input').value.trim();
-  state.dialog = null;
-  state.exercises = state.exercises.map((ex, i) => {
-    if (i !== d.ex) return ex;
-    return { ...ex, lines: ex.lines.map((l, j) => j === d.li ? { ...l, note } : l) };
-  });
-  save(); render();
-};
-
-window.saveDraftAction = () => {
-  if (state.sourceDraftId >= 0) {
-    state.dialog = {
-      type: "saveDraftChoice",
-      onSaveToExisting: () => {
-        state.drafts = state.drafts.map(d => d.id === state.sourceDraftId ? { ...d, exercises: state.exercises } : d);
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        save();
-        render();
-      },
-      onSaveAsNew: () => {
-        state.dialog = { type: "draftName", initial: "Копия: " + (state.drafts.find(d => d.id === state.sourceDraftId)?.name || "Тренировка"), onConfirm: (name) => {
-          state.drafts = [...state.drafts, { id: Date.now(), name: name, createdAt: Date.now(), exercises: state.exercises }];
-          state.sourceDraftId = -1;
-          state.editorMode = false;
-          state.screen = "HOME";
-          save();
-          render();
-        }};
-        render();
-      },
-      onDiscard: () => {
-        state.sourceDraftId = -1;
-        state.editorMode = false;
-        state.screen = "HOME";
-        render();
-      }
-    };
-    render();
   } else {
     state.dialog = { type: "draftName", initial: "Тренировка " + fmtDateShort(), onConfirm: saveDraftAndHome };
     render();
@@ -1801,15 +690,8 @@ window.openDraftByIndex = (index) => {
 
 window.copyDraftByIndex = (index) => {
   const d = state.drafts[index];
-  const newDraft = {
-    id: Date.now(),
-    name: "Копия: " + d.name,
-    createdAt: Date.now(),
-    exercises: JSON.parse(JSON.stringify(d.exercises))
-  };
-  state.drafts = [...state.drafts, newDraft];
-  save();
-  render();
+  state.drafts = [...state.drafts, { id: Date.now(), name: "Копия: " + d.name, createdAt: Date.now(), exercises: JSON.parse(JSON.stringify(d.exercises)) }];
+  save(); render();
 };
 
 window.renameDraftByIndex = (index) => {
@@ -1819,8 +701,7 @@ window.renameDraftByIndex = (index) => {
     initial: state.drafts[index].name,
     onConfirm: (name) => {
       state.drafts = state.drafts.map((d, i) => i === index ? { ...d, name: name } : d);
-      save();
-      render();
+      save(); render();
     }
   };
   render();
@@ -1870,28 +751,43 @@ window.importBaseFromHistory = () => {
   save(); render();
 };
 
-const app = document.getElementById("app");
-const render = () => {
-  document.querySelectorAll('.dialog-bg').forEach(d => d.remove());
-  let html = "";
-  if (state.screen === "HOME") html = renderHome();
-  else if (state.screen === "FUTURE") html = renderFuture();
-  else if (state.screen === "WORKOUT") html = renderWorkout();
-  else if (state.screen === "HISTORY") html = renderHistory();
-  else if (state.screen === "STATS") html = renderStats();
-  else if (state.screen === "SETTINGS") html = renderSettings();
-  else if (state.screen === "BASE") html = renderBase();
-  else if (state.screen === "ACHIEVEMENTS") html = renderAchievements();
-  else if (state.screen === "SUMMARY") html = renderSummary();
-  app.innerHTML = html;
-  if (state.dialog) renderDialog();
-  if (state.screen === "STATS") setTimeout(drawChart, 50);
-  if (state.screen === "WORKOUT") setTimeout(updateTimerUI, 10);
+// === ШАПКА (нескроллящаяся) ===
+const headerFor = () => {
+  if (state.screen === "HOME") {
+    return `<h1 style="margin:0 0 2px 0">GymLog</h1><div class="date">${fmtDateLong()}</div>`;
+  }
+  if (state.screen === "WORKOUT" && !state.editorMode) {
+    return `
+      <button class="back" onclick="backAction()">← Меню</button>
+      <div class="card" style="margin:0 0 6px 0;cursor:default">
+        <div class="row">
+          <div id="timer-val" class="timer-display">${fmtSeconds(state.timerMode === "COUNTDOWN" ? state.presetSeconds : 0)}</div>
+          <div style="flex:1;margin-left:16px">
+            <button id="timer-btn" class="btn-primary" style="height:56px;font-size:20px;margin-bottom:8px" onclick="toggleTimer()">Старт</button>
+            <button class="btn-secondary" style="height:56px;font-size:20px;margin-bottom:0" onclick="resetTimerVisual()">Сброс</button>
+          </div>
+        </div>
+        <div class="timer-mode" style="margin-bottom:0">режим: ${state.timerMode === "COUNTDOWN" ? "таймер" : "секундомер"} · идёт с ${fmtDateTime(state.active.start)}</div>
+      </div>`;
+  }
+  if (state.screen === "WORKOUT" && state.editorMode) {
+    const draft = state.drafts.find(d => d.id === state.sourceDraftId);
+    return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${draft?.name || "Новая тренировка"}</h2>`;
+  }
+  const titles = {
+    FUTURE: "Будущие тренировки",
+    HISTORY: "История",
+    STATS: "Статистика",
+    SETTINGS: "Настройки",
+    BASE: `База упражнений (${state.exerciseBase.length})`,
+    ACHIEVEMENTS: `Ачивки ${state.earnedAch.size} / ${ACHIEVEMENTS.length}`,
+    SUMMARY: "Тренировка завершена"
+  };
+  return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${titles[state.screen] || ""}</h2>`;
 };
 
+// === ЭКРАНЫ (только контент, скроллящийся) ===
 const renderHome = () => `
-  <h1>GymLog</h1>
-  <div class="date">${fmtDateLong()}</div>
   ${state.active ? `<button class="btn-secondary" style="height:80px;margin-bottom:16px" onclick="continueActive()"><div style="font-size:20px;font-weight:600">▶ Продолжить тренировку</div><div style="font-size:12px;color:#888;margin-top:4px">идёт с ${fmtDateTime(state.active.start)}</div></button>` : ""}
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">Новая тренировка</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='FUTURE';render()">Будущие тренировки${state.drafts.length ? ` (${state.drafts.length})` : ""}</button>
@@ -1903,8 +799,6 @@ const renderHome = () => `
 `;
 
 const renderFuture = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>Будущие тренировки</h2>
   <button class="btn-primary" style="height:64px;margin-bottom:16px;font-size:18px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">+ Новая</button>
   ${state.drafts.length === 0 ? '<div class="empty">Пока пусто. Создай черновик и сохрани его здесь.</div>' : ""}
   ${state.drafts.map((d, i) => `
@@ -1921,87 +815,52 @@ const renderFuture = () => `
   `).join("")}
 `;
 
-const renderWorkout = () => {
-  if (state.editorMode) {
-    const draft = state.drafts.find(d => d.id === state.sourceDraftId);
-    return `
-      <button class="back" onclick="editorBack()">← Меню</button>
-      <h2>${draft?.name || "Новая тренировка"}</h2>
-      ${state.exercises.map((ex, ei) => `
-        <div class="card" style="cursor:default">
+const exerciseCard = (ex, ei, withNote) => `
+  <div class="card" style="cursor:default">
+    <div class="row between">
+      <h3 style="flex:1;margin-bottom:0">${ex.name}</h3>
+      <button class="icon-btn" onclick="toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
+      <button class="icon-btn" onclick="editExerciseByIndex(${ei})">изм.</button>
+    </div>
+    ${state.expandedExercises.has(ei) ? `
+      <div style="margin-top:8px">
+      ${ex.lines.length === 0 ? '<div class="empty" style="padding:8px 0">Пока нет весов — добавь строку</div>' : ""}
+      ${ex.lines.map((l, li) => `
+        <div class="line-row">
           <div class="row between">
-            <h3 style="flex:1">${ex.name}</h3>
-            <button class="icon-btn" onclick="toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
-            <button class="icon-btn" onclick="editExerciseByIndex(${ei})">изм.</button>
+            <button class="icon-btn" style="font-size:17px;padding:4px 0" onclick="state.dialog={type:'editLine',ex:${ei},li:${li},weight:${l.weight},reps:${l.reps},sets:${l.sets.length}};render()">${fmtWeight(l.weight)} кг × ${l.reps}</button>
+            ${withNote ? `<button class="icon-btn" style="font-size:18px" onclick="state.dialog={type:'note',ex:${ei},li:${li},note:${JSON.stringify(l.note)}};render()">📝</button>` : ""}
           </div>
-          ${state.expandedExercises.has(ei) ? `
-            ${ex.lines.length === 0 ? '<div class="empty" style="padding:8px 0">Пока нет весов — добавь строку</div>' : ""}
-            ${ex.lines.map((l, li) => `
-              <div class="line-row">
-                <div class="row between">
-                  <button class="icon-btn" style="font-size:17px;padding:4px 0" onclick="state.dialog={type:'editLine',ex:${ei},li:${li},weight:${l.weight},reps:${l.reps},sets:${l.sets.length}};render()">${fmtWeight(l.weight)} кг × ${l.reps}</button>
-                </div>
-                <div class="sets">${l.sets.map((done, si) => `<div class="set ${done?'done':''}" onclick="toggleSet(${ei},${li},${si},${!done})">${si+1}</div>`).join("")}</div>
-              </div>
-            `).join("")}
-            <button class="icon-btn" style="margin-top:8px" onclick="addLine(${ei})">+ вес</button>
-          ` : ""}
+          <div class="sets">${l.sets.map((done, si) => `<div class="set ${done?'done':''}" onclick="toggleSet(${ei},${li},${si},${!done})">${si+1}</div>`).join("")}</div>
         </div>
       `).join("")}
+      <button class="icon-btn" style="margin-top:8px" onclick="addLine(${ei})">+ вес</button>
+      </div>
+    ` : ""}
+  </div>
+`;
+
+const renderWorkout = () => {
+  if (state.editorMode) {
+    return `
+      ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, false)).join("")}
       <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
       <button class="btn-secondary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="saveDraftAction()">💾 Сохранить черновик</button>
       <button class="btn-primary" style="height:72px;font-size:22px" onclick="startFromEditor()">▶ Начать тренировку</button>
     `;
-  } else {
-    return `
-      <button class="back" onclick="activeBack()">← Меню</button>
-      <div class="date">${fmtDateLong()}</div>
-      <div class="card">
-        <div class="row">
-          <div id="timer-val" class="timer-display">${fmtSeconds(state.timerMode === "COUNTDOWN" ? state.presetSeconds : 0)}</div>
-          <div style="flex:1;margin-left:16px">
-            <button id="timer-btn" class="btn-primary" style="height:64px;font-size:20px;margin-bottom:8px" onclick="toggleTimer()">Старт</button>
-            <button class="btn-secondary" style="height:64px;font-size:20px" onclick="resetTimerVisual()">Сброс</button>
-          </div>
-        </div>
-        <div class="timer-mode">режим: ${state.timerMode === "COUNTDOWN" ? "таймер" : "секундомер"}</div>
-      </div>
-      <div class="meta" style="margin-bottom:12px;color:#888;font-size:13px">идёт с ${fmtDateTime(state.active.start)}</div>
-      ${state.exercises.map((ex, ei) => `
-        <div class="card" style="cursor:default">
-          <div class="row between">
-            <h3 style="flex:1">${ex.name}</h3>
-            <button class="icon-btn" onclick="toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
-            <button class="icon-btn" onclick="editExerciseByIndex(${ei})">изм.</button>
-          </div>
-          ${state.expandedExercises.has(ei) ? `
-            ${ex.lines.length === 0 ? '<div class="empty" style="padding:8px 0">Пока нет весов — добавь строку</div>' : ""}
-            ${ex.lines.map((l, li) => `
-              <div class="line-row">
-                <div class="row between">
-                  <button class="icon-btn" style="font-size:17px;padding:4px 0" onclick="state.dialog={type:'editLine',ex:${ei},li:${li},weight:${l.weight},reps:${l.reps},sets:${l.sets.length}};render()">${fmtWeight(l.weight)} кг × ${l.reps}</button>
-                  <button class="icon-btn" style="font-size:18px" onclick="state.dialog={type:'note',ex:${ei},li:${li},note:${JSON.stringify(l.note)}};render()"></button>
-                </div>
-                <div class="sets">${l.sets.map((done, si) => `<div class="set ${done?'done':''}" onclick="toggleSet(${ei},${li},${si},${!done})">${si+1}</div>`).join("")}</div>
-              </div>
-            `).join("")}
-            <button class="icon-btn" style="margin-top:8px" onclick="addLine(${ei})">+ вес</button>
-          ` : ""}
-        </div>
-      `).join("")}
-      <div class="card" style="margin-top:12px;cursor:default">
-        <div class="switch-row" onclick="state.flagBulkan=!state.flagBulkan;render()"><div>🐱 Булкан был рядом</div><div class="switch ${state.flagBulkan?'on':''}"></div></div>
-        <div class="switch-row" onclick="state.flagNomusic=!state.flagNomusic;render()"><div>🔇 Без музыки</div><div class="switch ${state.flagNomusic?'on':''}"></div></div>
-      </div>
-      <button class="btn-primary" style="height:64px;margin-bottom:12px;margin-top:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
-      <button class="btn-primary" style="height:72px;font-size:22px" onclick="finishWorkout()">Закончить тренировку</button>
-    `;
   }
+  return `
+    ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, true)).join("")}
+    <div class="card" style="cursor:default">
+      <div class="switch-row" onclick="state.flagBulkan=!state.flagBulkan;render()"><div>🐱 Булкан был рядом</div><div class="switch ${state.flagBulkan?'on':''}"></div></div>
+      <div class="switch-row" style="padding-bottom:0" onclick="state.flagNomusic=!state.flagNomusic;render()"><div>🔇 Без музыки</div><div class="switch ${state.flagNomusic?'on':''}"></div></div>
+    </div>
+    <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
+    <button class="btn-primary" style="height:72px;font-size:22px" onclick="finishWorkout()">Закончить тренировку</button>
+  `;
 };
 
 const renderHistory = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>История</h2>
   ${state.history.length === 0 ? '<div class="empty">Пока пусто.</div>' : ""}
   ${state.history.map((sw, i) => `
     <div class="card" onclick="openHistoryByIndex(${i})">
@@ -2019,22 +878,18 @@ const renderHistory = () => `
 
 const renderAchievements = () => {
   const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
-  return `
-    <button class="back" onclick="backAction()">← Меню</button>
-    <h2>Ачивки ${state.earnedAch.size} / ${ACHIEVEMENTS.length}</h2>
-    ${ACHIEVEMENTS.map(d => {
-      const got = state.earnedAch.has(d.id);
-      const hiddenLocked = d.hidden && !got;
-      const rClass = got ? (d.rarity===0?'bronze':d.rarity===1?'silver':d.rarity===2?'gold':'platinum') : '';
-      let progressHtml = '';
-      if (!got && d.progress && !hiddenLocked) {
-        const [cur, target] = d.progress(state.history, bw);
-        const frac = target > 0 ? Math.max(0.02, Math.min(1, cur/target)) : 0.02;
-        progressHtml = `<div style="margin-top:6px"><div style="background:#444;height:8px;border-radius:4px;overflow:hidden"><div style="background:#D4AF37;height:100%;width:${frac*100}%"></div></div><div style="font-size:12px;color:#999;margin-top:4px">${cur} / ${target}</div></div>`;
-      }
-      return `<div class="card" style="cursor:default"><div class="row"><div class="medal ${got?'earned '+rClass:'locked'}">${got ? d.icon : "?"}</div><div style="flex:1;margin-left:12px"><h3 style="color:${got?'#e8e8e8':'#999'}">${hiddenLocked ? "???" : d.name}</h3><div class="meta">${hiddenLocked ? "Скрытая ачивка" : d.desc}</div>${got ? `<div class="meta" style="color:#D4AF37">${rarityName(d.rarity)} · получено</div>` : ""}${progressHtml}</div></div></div>`;
-    }).join("")}
-  `;
+  return ACHIEVEMENTS.map(d => {
+    const got = state.earnedAch.has(d.id);
+    const hiddenLocked = d.hidden && !got;
+    const rClass = got ? (d.rarity===0?'bronze':d.rarity===1?'silver':d.rarity===2?'gold':'platinum') : '';
+    let progressHtml = '';
+    if (!got && d.progress && !hiddenLocked) {
+      const [cur, target] = d.progress(state.history, bw);
+      const frac = target > 0 ? Math.max(0.02, Math.min(1, cur/target)) : 0.02;
+      progressHtml = `<div style="margin-top:6px"><div style="background:#444;height:8px;border-radius:4px;overflow:hidden"><div style="background:#D4AF37;height:100%;width:${frac*100}%"></div></div><div style="font-size:12px;color:#999;margin-top:4px">${cur} / ${target}</div></div>`;
+    }
+    return `<div class="card" style="cursor:default"><div class="row"><div class="medal ${got?'earned '+rClass:'locked'}">${got ? d.icon : "?"}</div><div style="flex:1;margin-left:12px"><h3 style="color:${got?'#e8e8e8':'#999'}">${hiddenLocked ? "???" : d.name}</h3><div class="meta">${hiddenLocked ? "Скрытая ачивка" : d.desc}</div>${got ? `<div class="meta" style="color:#D4AF37">${rarityName(d.rarity)} · получено</div>` : ""}${progressHtml}</div></div></div>`;
+  }).join("");
 };
 
 const renderStats = () => {
@@ -2044,15 +899,13 @@ const renderStats = () => {
   const maxWeight = dataPoints.length ? Math.max(...dataPoints.map(p => p[1])) : 0;
   const sessionsCount = new Set(dataPoints.map(p => p[0])).size;
   return `
-    <button class="back" onclick="backAction()">← Меню</button>
-    <h2>Статистика</h2>
     ${names.length === 0 ? '<div class="empty">Нет данных. Заверши хотя бы одну тренировку.</div>' : `
       <div style="margin-bottom:12px">Упражнение:</div>
       <div style="margin-bottom:16px;display:flex;flex-wrap:wrap">
         ${names.map((n, i) => `<span class="chip ${n===state.selectedExercise?'active':''}" onclick="selectExerciseByIndex(${i})">${n}</span>`).join("")}
       </div>
       ${dataPoints.length < 2 ? '<div class="empty">Нужно минимум 2 точки для графика</div>' : `
-        <div class="card" style="padding:16px"><canvas id="chart"></canvas></div>
+        <div class="card" style="padding:16px;cursor:default"><canvas id="chart"></canvas></div>
         <div class="stat-big">Максимальный вес: ${fmtWeight(maxWeight)} кг</div>
         <div class="stat-small">Тренировок с этим упражнением: ${sessionsCount}</div>
       `}
@@ -2091,19 +944,15 @@ const drawChart = () => {
 };
 
 const renderSettings = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>Настройки</h2>
-  <div class="card"><h3>Мой вес, кг (для ачивок ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;save()" placeholder="Вес, кг" style="margin-top:8px"></div>
-  <div class="card"><button class="btn-secondary" style="height:64px;font-size:18px" onclick="state.screen='BASE';render()">📚 База упражнений</button></div>
-  <div class="card"><h3>Резервная копия данных</h3><div style="margin-top:8px;display:flex;gap:8px"><button class="btn-small btn-primary" onclick="exportData()">Экспорт</button><label class="btn-small btn-secondary" style="cursor:pointer"><input type="file" accept=".json" onchange="importData(event)" style="display:none">Импорт</label></div><div style="color:#888;font-size:12px;margin-top:8px">Экспорт сохраняет все данные в JSON-файл. Импорт восстанавливает из файла.</div></div>
-  <div class="card"><h3>Режим таймера</h3><div class="radio-group"><div class="radio ${state.timerMode==='COUNTDOWN'?'active':''}" onclick="state.timerMode='COUNTDOWN';if(!state.timerRunning)state.timerAnchorMs=state.presetSeconds*1000;save();render()">Таймер</div><div class="radio ${state.timerMode==='STOPWATCH'?'active':''}" onclick="state.timerMode='STOPWATCH';if(!state.timerRunning)state.timerAnchorMs=0;save();render()">Секундомер</div></div></div>
-  <div class="card"><div class="switch-row"><div>Автозапуск после подхода</div><div class="switch ${state.autoStart?'on':''}" onclick="state.autoStart=!state.autoStart;save();render()"></div></div></div>
-  <div class="card"><h3>Пресет отдыха (сек)</h3><div class="radio-group">${[60,90,120,180].map(p => `<div class="radio ${state.presetSeconds===p?'active':''}" onclick="state.presetSeconds=${p};if(state.timerMode==='COUNTDOWN'&&!state.timerRunning)state.timerAnchorMs=${p}*1000;save();render()">${p}</div>`).join("")}</div></div>
+  <div class="card" style="cursor:default"><h3>Мой вес, кг (для ачивок ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;save()" placeholder="Вес, кг" style="margin-top:8px"></div>
+  <div class="card" style="cursor:default"><button class="btn-secondary" style="height:64px;font-size:18px" onclick="state.screen='BASE';render()">📚 База упражнений</button></div>
+  <div class="card" style="cursor:default"><h3>Резервная копия данных</h3><div style="margin-top:8px;display:flex;gap:8px"><button class="btn-small btn-primary" onclick="exportData()">Экспорт</button><label class="btn-small btn-secondary" style="cursor:pointer"><input type="file" accept=".json" onchange="importData(event)" style="display:none">Импорт</label></div><div style="color:#888;font-size:12px;margin-top:8px">Экспорт сохраняет все данные в JSON-файл. Импорт восстанавливает из файла.</div></div>
+  <div class="card" style="cursor:default"><h3>Режим таймера</h3><div class="radio-group"><div class="radio ${state.timerMode==='COUNTDOWN'?'active':''}" onclick="state.timerMode='COUNTDOWN';if(!state.timerRunning)state.timerAnchorMs=state.presetSeconds*1000;save();render()">Таймер</div><div class="radio ${state.timerMode==='STOPWATCH'?'active':''}" onclick="state.timerMode='STOPWATCH';if(!state.timerRunning)state.timerAnchorMs=0;save();render()">Секундомер</div></div></div>
+  <div class="card" style="cursor:default"><div class="switch-row"><div>Автозапуск после подхода</div><div class="switch ${state.autoStart?'on':''}" onclick="state.autoStart=!state.autoStart;save();render()"></div></div></div>
+  <div class="card" style="cursor:default"><h3>Пресет отдыха (сек)</h3><div class="radio-group">${[60,90,120,180].map(p => `<div class="radio ${state.presetSeconds===p?'active':''}" onclick="state.presetSeconds=${p};if(state.timerMode==='COUNTDOWN'&&!state.timerRunning)state.timerAnchorMs=${p}*1000;save();render()">${p}</div>`).join("")}</div></div>
 `;
 
 const renderBase = () => `
-  <button class="back" onclick="backAction()">← Меню</button>
-  <h2>База упражнений (${state.exerciseBase.length})</h2>
   <div class="row" style="margin-bottom:12px"><input id="newEx" type="text" placeholder="Новое упражнение" style="flex:1"><button class="btn-small btn-primary" style="width:auto;margin-left:8px" onclick="addBaseExercise()">Добавить</button></div>
   <button class="btn-secondary" style="height:56px;margin-bottom:16px;font-size:16px" onclick="importBaseFromHistory()">Импортировать из истории</button>
   ${state.exerciseBase.length === 0 ? '<div class="empty">Пока пусто.</div>' : ""}
@@ -2114,12 +963,11 @@ const renderSummary = () => {
   const sw = state.summaryWorkout;
   if (!sw) return "";
   return `
-    <h2>Тренировка завершена</h2>
     ${state.summaryPraise ? `<div class="praise">${state.summaryPraise}</div>` : ""}
-    <div class="meta">${fmtDateTime(sw.start)}</div>
-    <div class="meta">Длительность: ${fmtDuration(sw.end - sw.start)}</div>
-    ${sw.bulkan || sw.nomusic ? `<div class="meta">${sw.bulkan?'🐱 Булкан был рядом  ':''}${sw.nomusic?'🔇 без музыки':''}</div>` : ''}
-    ${state.lastEarned.length > 0 ? `<div class="card" style="margin:16px 0"><h3>🏆 Получены ачивки:</h3>${state.lastEarned.map(a => `<div class="row" style="margin-top:8px"><div class="medal earned ${a.rarity===0?'bronze':a.rarity===1?'silver':a.rarity===2?'gold':'platinum'}" style="width:44px;height:44px;font-size:20px">${a.icon}</div><div style="margin-left:10px"><div style="font-size:16px">${a.name}</div><div style="font-size:12px;color:#D4AF37">${rarityName(a.rarity)}</div></div></div>`).join("")}</div>` : ""}
+    <div class="date">${fmtDateTime(sw.start)}</div>
+    <div class="date">Длительность: ${fmtDuration(sw.end - sw.start)}</div>
+    ${sw.bulkan || sw.nomusic ? `<div class="date">${sw.bulkan?'🐱 Булкан был рядом  ':''}${sw.nomusic?'🔇 без музыки':''}</div>` : ''}
+    ${state.lastEarned.length > 0 ? `<div class="card" style="margin:16px 0;cursor:default"><h3>🏆 Получены ачивки:</h3>${state.lastEarned.map(a => `<div class="row" style="margin-top:8px"><div class="medal earned ${a.rarity===0?'bronze':a.rarity===1?'silver':a.rarity===2?'gold':'platinum'}" style="width:44px;height:44px;font-size:20px">${a.icon}</div><div style="margin-left:10px"><div style="font-size:16px">${a.name}</div><div style="font-size:12px;color:#D4AF37">${rarityName(a.rarity)}</div></div></div>`).join("")}</div>` : ""}
     ${sw.exercises.map(ex => `<div class="card" style="cursor:default"><h3>${ex.name}</h3>${ex.lines.map(l => `<div style="margin-top:4px">${fmtWeight(l.weight)} кг × ${l.reps} — подходов: ${l.done}</div>${l.note ? `<div style="color:#888;font-size:13px;margin-left:8px;margin-top:2px">Заметка: ${l.note}</div>` : ""}`).join("")}</div>`).join("")}
     <div class="stat-big">Всего: ${setsOf(sw)} подходов, объём ${Math.round(volumeOf(sw))} кг</div>
     <button class="btn-primary" style="height:72px;margin-top:24px;font-size:22px" onclick="state.screen=state.summaryReturn;render()">ОК</button>
@@ -2130,7 +978,6 @@ const renderDialog = () => {
   const d = state.dialog;
   if (!d) return;
   let content = "";
-  
   if (d.type === "confirm") {
     content = `<div class="dialog"><h3>${d.title}</h3><div style="margin-bottom:16px">${d.text}</div><div class="btn-row"><button class="btn-danger" onclick="dialogConfirm()">${d.ok}</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
   } else if (d.type === "start") {
@@ -2152,7 +999,6 @@ const renderDialog = () => {
   } else if (d.type === "note") {
     content = `<div class="dialog"><h3>Заметка к подходу</h3><textarea id="dlg-input">${d.note}</textarea><div class="btn-row"><button class="btn-primary" onclick="saveNoteData()">Сохранить</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
   }
-  
   if (content) {
     const bg = document.createElement("div");
     bg.className = "dialog-bg";
@@ -2168,6 +1014,20 @@ window.toggleExpand = (ei) => {
   if (state.expandedExercises.has(ei)) state.expandedExercises.delete(ei);
   else state.expandedExercises.add(ei);
   render();
+};
+
+// === ГЛАВНЫЙ РЕНДЕР: шапка + скроллящийся контент ===
+const app = document.getElementById("app");
+const render = () => {
+  document.querySelectorAll('.dialog-bg').forEach(d => d.remove());
+  const contentFns = {
+    HOME: renderHome, FUTURE: renderFuture, WORKOUT: renderWorkout, HISTORY: renderHistory,
+    STATS: renderStats, SETTINGS: renderSettings, BASE: renderBase, ACHIEVEMENTS: renderAchievements, SUMMARY: renderSummary
+  };
+  app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content">${contentFns[state.screen]()}</div>`;
+  if (state.dialog) renderDialog();
+  if (state.screen === "STATS") setTimeout(drawChart, 50);
+  if (state.screen === "WORKOUT" && !state.editorMode) setTimeout(updateTimerUI, 10);
 };
 
 if (state.timerMode === "COUNTDOWN") state.timerAnchorMs = state.presetSeconds * 1000;
