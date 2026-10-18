@@ -73,9 +73,10 @@ canvas{width:100%;height:240px;display:block}
 .footer{text-align:center;color:#555;font-size:12px;margin-top:32px}
 .add-btn{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));right:max(16px, calc(50vw - 300px + 16px));width:64px;height:64px;border-radius:50%;background:#4a6bff;color:#fff;border:none;font-size:32px;cursor:pointer;box-shadow:0 4px 12px rgba(74,107,255,.4);display:flex;align-items:center;justify-content:center;z-index:10}
 .add-btn:active{transform:scale(.95)}
-.hero{display:flex;flex-direction:column;align-items:center;margin:4px 0 20px}
-.hero-img{width:190px;height:190px;object-fit:cover;border-radius:28px;border:2px solid #2a2a2a;background:#161616}
-.hero-title{font-size:36px;font-weight:800;margin-top:12px;letter-spacing:1px}
+.home-header{display:flex;align-items:center;gap:14px}
+.home-header img{width:84px;height:84px;border-radius:20px;object-fit:cover;border:2px solid #2a2a2a;background:#161616;flex-shrink:0}
+.hh-title{font-size:30px;font-weight:800;letter-spacing:1px;line-height:1.1}
+.hh-date{color:#888;font-size:13px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -155,7 +156,7 @@ const weekKeysWithMin = (h, min, dayOfWeek = null) => {
     acc[wk]++;
     return acc;
   }, {});
-  return new Set(Object.entries(grouped).filter(([k, v]) => v >= min).map(([k]) => parseInt(k)));
+  return new Set(Object.entries(grouped).filter(([k, v) => v >= min).map(([k]) => parseInt(k)));
 };
 const fullGymAnyWeek = (h) => {
   const parts = ["присед", "станов", "подтяг", "наклон"];
@@ -585,7 +586,6 @@ window.editExerciseByIndex = (ei) => {
   render();
 };
 
-// ИСПРАВЛЕНИЕ: кнопка заметки через нормальную функцию
 window.openNoteByIndex = (ei, li) => {
   state.dialog = { type: 'note', ex: ei, li: li, note: state.exercises[ei].lines[li].note };
   render();
@@ -763,7 +763,14 @@ window.importBaseFromHistory = () => {
 // === ШАПКА ===
 const headerFor = () => {
   if (state.screen === "HOME") {
-    return `<div class="date" style="margin:0">${fmtDateLong()}</div>`;
+    return `
+      <div class="home-header">
+        <img src="./icon-app.png" alt="" onerror="this.style.display='none'">
+        <div>
+          <div class="hh-title">GymLog</div>
+          <div class="hh-date">${fmtDateLong()}</div>
+        </div>
+      </div>`;
   }
   if (state.screen === "WORKOUT" && !state.editorMode) {
     return `
@@ -797,10 +804,6 @@ const headerFor = () => {
 
 // === ЭКРАНЫ ===
 const renderHome = () => `
-  <div class="hero">
-    <img class="hero-img" src="./icon-app.png" alt="" onerror="this.style.display='none'">
-    <div class="hero-title">GymLog</div>
-  </div>
   ${state.active ? `<button class="btn-secondary" style="height:80px;margin-bottom:16px" onclick="continueActive()"><div style="font-size:20px;font-weight:600">▶ Продолжить тренировку</div><div style="font-size:12px;color:#888;margin-top:4px">идёт с ${fmtDateTime(state.active.start)}</div></button>` : ""}
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">Новая тренировка</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='FUTURE';render()">Будущие тренировки${state.drafts.length ? ` (${state.drafts.length})` : ""}</button>
