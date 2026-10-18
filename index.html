@@ -82,6 +82,11 @@ canvas{width:100%;height:240px;display:block}
 <body>
 <div id="app"></div>
 <script>
+window.onerror = function(msg, src, line) {
+  document.getElementById('app').innerHTML = '<div style="padding:24px;color:#ff8a8a;font-size:14px;font-family:monospace">JS сдох:<br>' + msg + '<br>строка ' + line + '</div>';
+};
+</script>
+<script>
 const LS = {
   get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
@@ -156,7 +161,7 @@ const weekKeysWithMin = (h, min, dayOfWeek = null) => {
     acc[wk]++;
     return acc;
   }, {});
-  return new Set(Object.entries(grouped).filter(([k, v) => v >= min).map(([k]) => parseInt(k)));
+  return new Set(Object.entries(grouped).filter(([k, v]) => v >= min).map(([k]) => parseInt(k)));
 };
 const fullGymAnyWeek = (h) => {
   const parts = ["присед", "станов", "подтяг", "наклон"];
