@@ -10,11 +10,14 @@
 
   function resize(){
     const DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = canvas.clientWidth; H = canvas.clientHeight;
-    canvas.width = W * DPR; canvas.height = H * DPR;
+    W = canvas.clientWidth || window.innerWidth;
+    H = canvas.clientHeight || window.innerHeight;
+    canvas.width = Math.max(1, W * DPR);
+    canvas.height = Math.max(1, H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
   window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
 
   function mulberry32(a){
     return function(){
@@ -35,8 +38,8 @@
       const vol = volumeOf(w), sets = setsOf(w);
       return {
         x: rnd(), y: rnd() * 0.92,
-        r: 0.8 + Math.min(2.6, vol / 6000),
-        a: 0.16 + Math.min(0.42, sets / 80),
+        r: 1.2 + Math.min(3.0, vol / 5000),
+        a: 0.28 + Math.min(0.5, sets / 60),
         ph: rnd() * Math.PI * 2,
         sp: 0.3 + rnd() * 0.7,
         dy: (rnd() - 0.5) * 0.006,
@@ -58,19 +61,20 @@
 
   function frame(t){
     if (!visible) { raf = 0; return; }
+    if (W < 10 || H < 10) resize();
     const time = t / 1000;
     ctx.clearRect(0, 0, W, H);
     const baseHue = MONTH_HUES[new Date().getMonth()];
     const m = mood();
     if (m.glow > 0){
       const g = ctx.createRadialGradient(W/2, H*1.15, 10, W/2, H*1.15, H*0.9);
-      g.addColorStop(0, 'hsla(' + (baseHue + 40) + ',80%,55%,' + (0.10 * m.glow).toFixed(3) + ')');
+      g.addColorStop(0, 'hsla(' + (baseHue + 40) + ',80%,55%,' + (0.14 * m.glow).toFixed(3) + ')');
       g.addColorStop(1, 'hsla(0,0%,0%,0)');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     }
     if (m.dead){
       const g2 = ctx.createRadialGradient(W/2, -H*0.2, 10, W/2, -H*0.2, H*0.8);
-      g2.addColorStop(0, 'hsla(355,70%,45%,0.07)');
+      g2.addColorStop(0, 'hsla(355,70%,45%,0.09)');
       g2.addColorStop(1, 'hsla(0,0%,0%,0)');
       ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
     }
@@ -80,7 +84,7 @@
       const x = (s.x + Math.sin(time * 0.05 + s.ph) * 0.01) * W;
       const y = (((s.y + time * s.dy) % 1) + 1) % 1 * H;
       ctx.beginPath();
-      ctx.fillStyle = 'hsla(' + (baseHue + s.hueOff).toFixed(0) + ',70%,72%,' + (s.a * tw).toFixed(3) + ')';
+      ctx.fillStyle = 'hsla(' + (baseHue + s.hueOff).toFixed(0) + ',70%,75%,' + (s.a * tw).toFixed(3) + ')';
       ctx.arc(x, y, s.r, 0, 6.2832);
       ctx.fill();
     }
@@ -93,9 +97,9 @@
     const len = (state.history || []).length;
     if (want && !visible){
       visible = true;
+      canvas.style.display = 'block';
       if (builtFor !== len) buildStars();
       resize();
-      canvas.style.display = 'block';
       if (!raf) raf = requestAnimationFrame(frame);
     } else if (!want && visible){
       visible = false;
