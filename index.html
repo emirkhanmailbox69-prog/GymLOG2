@@ -1045,14 +1045,21 @@ window.toggleExpand = (ei) => {
 };
 
 const app = document.getElementById("app");
+let lastScreen = null;
 const render = () => {
   document.querySelectorAll('.dialog-bg').forEach(d => d.remove());
+  const oldContent = document.querySelector('.app-content');
+  const oldScroll = oldContent ? oldContent.scrollTop : 0;
+  const sameScreen = lastScreen === state.screen;
   const contentFns = {
     HOME: renderHome, FUTURE: renderFuture, WORKOUT: renderWorkout, HISTORY: renderHistory,
     STATS: renderStats, SETTINGS: renderSettings, BASE: renderBase, ACHIEVEMENTS: renderAchievements,
     SUMMARY: renderSummary, WATER: renderWater
   };
   app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${state.screen==='WATER'?' no-pad':''}">${contentFns[state.screen]()}</div>`;
+  const newContent = document.querySelector('.app-content');
+  if (newContent) newContent.scrollTop = sameScreen ? oldScroll : 0;
+  lastScreen = state.screen;
   if (state.dialog) renderDialog();
   if (state.screen === "STATS") setTimeout(drawChart, 50);
   if (state.screen === "WORKOUT" && !state.editorMode) setTimeout(updateTimerUI, 10);
