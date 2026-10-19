@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+    <title>C0ok1e_m🍪n$ter* water tracker</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --primary: #0a84ff;
+            --bg: #000000;
+            --card: #1c1c1e;
+            --input-bg: #2c2c2e;
+            --border: #38383a;
+            --text: #ffffff;
+            --text-secondary: #98989d;
+            --danger: #ff453a;
+            --success: #30d158;
+            --warning: #ff9f0a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 100px;
+            min-height: 100vh;
+        }
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--bg);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 { font-size: 18px; font-weight: 600; }
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 5px;
+        }
+        .progress-wrapper {
+            padding: 15px 20px;
+            background: var(--bg);
+        }
+        .progress-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        .progress-text { font-size: 32px; font-weight: 700; margin-bottom: 5px; }
+        .progress-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; }
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: var(--input-bg);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+        .container { padding: 20px; }
+        .add-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 32px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(10,132,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--card);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            padding-bottom: 40px;
+            animation: slideUp 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .close-btn { background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--input-bg); color: var(--text); }
+        .btn-small {
+            width: auto;
+            padding: 8px 12px;
+            font-size: 13px;
+            margin: 0;
+            border-radius: 8px;
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        .reminder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .reminder-info { flex: 1; }
+        .reminder-time { font-weight: 600; font-size: 16px; }
+        .reminder-text { font-size: 14px; color: var(--text-secondary); }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 30px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--border);
+            transition: .4s;
+            border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .delete-btn { background: none; border: none; color: var(--danger); font-size: 20px; margin-left: 10px; cursor: pointer; }
+        .history-list { margin-top: 10px; }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .history-info { flex: 1; }
+        .history-amount { font-weight: 600; font-size: 16px; }
+        .history-time { font-size: 13px; color: var(--text-secondary); }
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .history-actions button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .edit-btn { color: var(--warning); }
+        .delete-history-btn { color: var(--danger); }
+        hr {
+            margin: 20px 0;
+            border: 0;
+            border-top: 1px solid var(--border);
+        }
+        .notif-status {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            margin-bottom: 10px;
+        }
+        .notif-status.ok { color: var(--success); }
+        .notif-status.bad { color: var(--warning); }
+    </style>
+</head>
+<body>
+
+<div class="sticky-top">
+    <div class="header">
+        <h1>C0ok1e_m🍪n$ter* water tracker</h1>
+        <button class="icon-btn" id="settingsBtn">⚙️</button>
+    </div>
+    <div class="progress-wrapper">
+        <div class="progress-card">
+            <div class="progress-text" id="progressText">0 / 2000 мл</div>
+            <div class="progress-sub" id="progressSub">Цель на сегодня</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h3 id="historyTitle" style="margin-bottom: 10px;">История за сегодня</h3>
+    <div class="history-list" id="historyList"></div>
+</div>
+
+<button class="add-btn" id="addBtn">+</button>
+
+<!-- Add Water Modal -->
+<div class="modal" id="addModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Добавить воду</div>
+            <button class="close-btn" data-close="addModal">✕</button>
+        </div>
+        <button class="btn btn-primary" id="addLastBtn">Повторить прошлый (<span id="lastAmount">250</span> мл)</button>
+        <div class="input-group">
+            <label>Или введи свой объем (мл)</label>
+            <input type="number" id="customAmount" placeholder="Например, 300">
+        </div>
+        <button class="btn btn-secondary" id="addCustomBtn">Добавить</button>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Настройки</div>
+            <button class="close-btn" data-close="settingsModal">✕</button>
+        </div>
+        
+        <div class="input-group">
+            <label>Дневная цель (мл)</label>
+            <input type="number" id="goalInput" placeholder="2000">
+        </div>
+        <button class="btn btn-primary" id="saveGoalBtn">Сохранить цель</button>
+
+        <hr>
+
+        <div class="modal-header" style="margin-bottom: 5px;">
+            <div class="modal-title">Напоминания</div>
+        </div>
+
+        <div id="notifStatus" class="notif-status"></div>
+        <button class="btn btn-secondary btn-small" id="reqNotifBtn" style="margin-bottom: 15px;">🔔 Разрешить пуши</button>
+        
+        <div class="input-group" style="display: flex; gap: 10px;">
+            <input type="time" id="reminderTime" style="flex: 1;">
+            <input type="text" id="reminderText" placeholder="Текст" style="flex: 2;">
+        </div>
+        <button class="btn btn-primary" id="addReminderBtn">Добавить напоминание</button>
+
+        <div id="remindersList" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
+<!-- Edit History Modal -->
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Редактировать запись</div>
+            <button class="close-btn" data-close="editModal">✕</button>
+        </div>
+        <div class="input-group">
+            <label>Объем (мл)</label>
+            <input type="number" id="editAmount" placeholder="300">
+        </div>
+        <button class="btn btn-primary" id="saveEditBtn">Сохранить</button>
+    </div>
+</div>
+
+<script>
+    const addModal = document.getElementById('addModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const editModal = document.getElementById('editModal');
+    const addBtn = document.getElementById('addBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+
+    addBtn.onclick = () => addModal.classList.add('active');
+    settingsBtn.onclick = () => settingsModal.classList.add('active');
+
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.onclick = () => document.getElementById(btn.dataset.close).classList.remove('active');
+    });
+
+    [addModal, settingsModal, editModal].forEach(modal => {
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.classList.remove('active');
+        };
+    });
+
+    let state = {
+        goal: 2000,
+        current: 0,
+        lastAdded: 250,
+        history: [], 
+        reminders: [] 
+    };
+
+    let editingIndex = null;
+    let swRegistration = null;
+
+    // ============ ПРОВЕРКИ УВЕДОМЛЕНИЙ ============
+
+    function isStandalone() {
+        // Проверяем, запущено ли приложение с домашнего экрана (не в браузере)
+        return window.navigator.standalone === true || 
+               window.matchMedia('(display-mode: standalone)').matches;
+    }
+
+    function canShowNotifications() {
+        return 'Notification' in window;
+    }
+
+    function updateNotifStatus() {
+        const statusEl = document.getElementById('notifStatus');
+        const btnEl = document.getElementById('reqNotifBtn');
+
+        if (!isStandalone()) {
+            statusEl.className = 'notif-status bad';
+            statusEl.innerText = '⚠️ Пуши работают только с экрана Домой. Открой в Safari → Поделиться → На экран Домой';
+            btnEl.style.display = 'none';
+            return;
+        }
+
+        if (!canShowNotifications()) {
+            statusEl.className = 'notif-status bad';
+            statusEl.innerText = '⚠️ Эта версия iOS не поддерживает веб-пуши (нужна 16.4+)';
+            btnEl.style.display = 'none';
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            statusEl.className = 'notif-status ok';
+            statusEl.innerText = '✅ Уведомления разрешены';
+            btnEl.style.display = 'none';
+        } else if (Notification.permission === 'denied') {
+            statusEl.className = 'notif-status bad';
+            statusEl.innerText = '⚠️ Уведомления запрещены. Настройки телефона → это приложение → Уведомления';
+            btnEl.style.display = 'none';
+        } else {
+            statusEl.className = 'notif-status';
+            statusEl.innerText = '🔕 Уведомления не запрошены';
+            btnEl.style.display = 'block';
+        }
+    }
+
+    async function requestNotificationPermission() {
+        if (!isStandalone()) {
+            alert('Пуши работают только когда приложение установлено на экран Домой.\n\nОткрой этот сайт в Safari → кнопка «Поделиться» → «На экран Домой». Потом запусти с рабочего стола.');
+            return false;
+        }
+
+        if (!canShowNotifications()) {
+            alert('Эта версия iOS не поддерживает веб-пуши. Нужна iOS 16.4 или новее.');
+            return false;
+        }
+
+        if (Notification.permission === 'granted') {
+            return true;
+        }
+
+        if (Notification.permission === 'denied') {
+            alert('Уведомления уже запрещены в системе.\nЧтобы включить: Настройки телефона → найди это приложение → Уведомления → Разрешить.');
+            return false;
+        }
+
+        const permission = await Notification.requestPermission();
+        updateNotifStatus();
+        return permission === 'granted';
+    }
+
+    document.getElementById('reqNotifBtn').onclick = async () => {
+        await requestNotificationPermission();
+    };
+
+    // ============ STATE / STORAGE ============
+
+    function loadState() {
+        const saved = localStorage.getItem('waterTrackerState');
+        if (saved) {
+            state = { ...state, ...JSON.parse(saved) };
+        }
+        const today = new Date().toDateString();
+        const lastDate = localStorage.getItem('waterTrackerDate');
+        if (lastDate !== today) {
+            state.current = 0;
+            state.history = [];
+            localStorage.setItem('waterTrackerDate', today);
+            state.reminders.forEach(r => r.lastTriggered = '');
+        }
+        saveState();
+    }
+
+    function saveState() {
+        localStorage.setItem('waterTrackerState', JSON.stringify(state));
+    }
+
+    function formatDate() {
+        const now = new Date();
+        const days = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+        const dayName = days[now.getDay()];
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        return `${dayName}, ${day}.${month}.${year}`;
+    }
+
+    // ============ RENDER ============
+
+    function render() {
+        document.getElementById('progressText').innerText = `${state.current} / ${state.goal} мл`;
+        const pct = Math.min(100, (state.current / state.goal) * 100);
+        document.getElementById('progressBar').style.width = `${pct}%`;
+        document.getElementById('lastAmount').innerText = state.lastAdded;
+        document.getElementById('goalInput').value = state.goal;
+
+        document.getElementById('historyTitle').innerText = `История за сегодня, ${formatDate()}`;
+
+        updateNotifStatus();
+
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+        if (state.history.length === 0) {
+            historyList.innerHTML = '<div style="color: var(--text-secondary); font-size: 14px; padding: 10px 0;">Пока ничего не выпито</div>';
+        } else {
+            [...state.history].reverse().forEach((h, reverseIndex) => {
+                const index = state.history.length - 1 - reverseIndex;
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-amount">${h.amount} мл</div>
+                        <div class="history-time">${h.time}</div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="edit-btn" data-index="${index}">✏️</button>
+                        <button class="delete-history-btn" data-index="${index}">🗑️</button>
+                    </div>
+                `;
+                historyList.appendChild(div);
+            });
+
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const idx = parseInt(e.currentTarget.dataset.index);
+                    editingIndex = idx;
+                    document.getElementById('editAmount').value = state.history[idx].amount;
+                    editModal.classList.add('active');
+                };
+            });
+
+            document.querySelectorAll('.delete-history-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const idx = parseInt(e.currentTarget.dataset.index);
+                    const amount = state.history[idx].amount;
+                    state.current -= amount;
+                    state.history.splice(idx, 1);
+                    saveState();
+                    render();
+                };
+            });
+        }
+
+        const remList = document.getElementById('remindersList');
+        remList.innerHTML = '';
+        state.reminders.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'reminder-item';
+            div.innerHTML = `
+                <div class="reminder-info">
+                    <div class="reminder-time">${r.time}</div>
+                    <div class="reminder-text">${r.text}</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" ${r.enabled ? 'checked' : ''} data-id="${r.id}" class="toggle-rem">
+                    <span class="slider"></span>
+                </label>
+                <button class="delete-btn" data-id="${r.id}">🗑️</button>
+            `;
+            remList.appendChild(div);
+        });
+
+        document.querySelectorAll('.toggle-rem').forEach(t => {
+            t.onchange = (e) => {
+                const id = e.target.dataset.id;
+                const rem = state.reminders.find(r => r.id === id);
+                if (rem) {
+                    rem.enabled = e.target.checked;
+                    saveState();
+                }
+            };
+        });
+        
+        document.querySelectorAll('.delete-btn').forEach(b => {
+            b.onclick = (e) => {
+                const id = e.currentTarget.dataset.id;
+                state.reminders = state.reminders.filter(r => r.id !== id);
+                saveState();
+                render();
+            };
+        });
+    }
+
+    // ============ ВОДА ============
+
+    document.getElementById('addLastBtn').onclick = () => addWater(state.lastAdded);
+    document.getElementById('addCustomBtn').onclick = () => {
+        const val = parseInt(document.getElementById('customAmount').value);
+        if (val > 0) {
+            addWater(val);
+            document.getElementById('customAmount').value = '';
+        }
+    };
+
+    function addWater(amount) {
+        state.current += amount;
+        state.lastAdded = amount;
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        state.history.push({ amount, time: timeStr });
+        saveState();
+        render();
+        addModal.classList.remove('active');
+    }
+
+    // ============ НАСТРОЙКИ ============
+
+    document.getElementById('saveGoalBtn').onclick = () => {
+        const val = parseInt(document.getElementById('goalInput').value);
+        if (val > 0) {
+            state.goal = val;
+            saveState();
+            render();
+        }
+    };
+
+    document.getElementById('addReminderBtn').onclick = async () => {
+        const time = document.getElementById('reminderTime').value;
+        const text = document.getElementById('reminderText').value || 'Пора пить воду!';
+        if (!time) return;
+
+        // Автоматически просим разрешение на пуши при добавлении напоминания
+        // (как Авито делает при входе в сообщения)
+        const granted = await requestNotificationPermission();
+
+        state.reminders.push({
+            id: Date.now().toString(),
+            time,
+            text,
+            enabled: true,
+            lastTriggered: ''
+        });
+        saveState();
+        render();
+        document.getElementById('reminderTime').value = '';
+        document.getElementById('reminderText').value = '';
+
+        if (!granted) {
+            alert('Напоминание добавлено, но пуши не придут — уведомления не разрешены.');
+        }
+    };
+
+    // ============ РЕДАКТИРОВАНИЕ ИСТОРИИ ============
+
+    document.getElementById('saveEditBtn').onclick = () => {
+        const val = parseInt(document.getElementById('editAmount').value);
+        if (val > 0 && editingIndex !== null) {
+            const oldAmount = state.history[editingIndex].amount;
+            const diff = val - oldAmount;
+            state.history[editingIndex].amount = val;
+            state.current += diff;
+            saveState();
+            render();
+            editModal.classList.remove('active');
+            editingIndex = null;
+        }
+    };
+
+    // ============ SERVICE WORKER / ПУШИ ============
+
+    async function registerSW() {
+        if ('serviceWorker' in navigator) {
+            try {
+                swRegistration = await navigator.serviceWorker.register('./sw.js');
+            } catch (err) {
+                console.log('SW failed', err);
+            }
+        }
+    }
+
+    function checkReminders() {
+        // Защита: если уведомлений нет вообще — выходим
+        if (!canShowNotifications()) return;
+        if (Notification.permission !== 'granted') return;
+        
+        const now = new Date();
+        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const todayStr = now.toDateString();
+
+        state.reminders.forEach(r => {
+            if (r.enabled && r.time === currentTime && r.lastTriggered !== todayStr) {
+                if (swRegistration && swRegistration.showNotification) {
+                    swRegistration.showNotification('C0ok1e_m🍪n$ter* water tracker 💧', {
+                        body: r.text,
+                        tag: r.id,
+                        renotify: true
+                    });
+                } else if (canShowNotifications()) {
+                    new Notification('C0ok1e_m🍪n$ter* water tracker 💧', { body: r.text });
+                }
+                r.lastTriggered = todayStr;
+                saveState();
+            }
+        });
+    }
+
+    // ============ INIT ============
+
+    loadState();
+    render();
+    registerSW();
+    setInterval(checkReminders, 30000);
+    checkReminders();
+</script>
+</body>
+</html>
