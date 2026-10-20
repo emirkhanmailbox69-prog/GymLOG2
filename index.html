@@ -901,7 +901,7 @@ const headerFor = () => {
     const draft = state.drafts.find(d => d.id === state.sourceDraftId);
     return `<button class="back" onclick="backAction()">← Меню</button>
       <h2 style="margin:0 0 8px 0">${draft?.name || "Новая тренировка"}</h2>
-      <button class="btn-primary" style="height:56px;font-size:19px;margin-bottom:0" onclick="startFromEditor()">▶ Начать тренировку</button>`;
+      <button class="btn-primary" style="height:72px;font-size:22px;margin-bottom:0" onclick="startFromEditor()">▶ Начать тренировку</button>`;
   }
   const titles = {
     FUTURE: "Будущие тренировки",
@@ -999,7 +999,6 @@ const renderWorkout = () => {
       ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, false)).join("")}
       <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
       <button class="btn-secondary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="saveDraftAction()">💾 Сохранить черновик</button>
-      <button class="btn-primary" style="height:72px;font-size:22px" onclick="startFromEditor()">▶ Начать тренировку</button>
     `;
   }
   return `
