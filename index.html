@@ -897,9 +897,11 @@ const headerFor = () => {
         <div class="timer-mode" style="margin-bottom:0">режим: ${state.timerMode === "COUNTDOWN" ? "таймер" : "секундомер"} · идёт с ${fmtDateTime(state.active.start)}</div>
       </div>`;
   }
-  if (state.screen === "WORKOUT" && state.editorMode) {
+    if (state.screen === "WORKOUT" && state.editorMode) {
     const draft = state.drafts.find(d => d.id === state.sourceDraftId);
-    return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${draft?.name || "Новая тренировка"}</h2>`;
+    return `<button class="back" onclick="backAction()">← Меню</button>
+      <h2 style="margin:0 0 8px 0">${draft?.name || "Новая тренировка"}</h2>
+      <button class="btn-primary" style="height:56px;font-size:19px;margin-bottom:0" onclick="startFromEditor()">▶ Начать тренировку</button>`;
   }
   const titles = {
     FUTURE: "Будущие тренировки",
