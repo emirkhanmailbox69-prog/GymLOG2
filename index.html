@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GymLog">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="apple-touch-icon" href="./icon-app.png">
@@ -200,7 +200,7 @@ const ACHIEVEMENTS = [
     check: (h, bw) => bw > 0 && maxBenchWeight(h) >= bw * 1.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxBenchWeight(h)), Math.floor(bw * 1.5)] : [0, 1] },
   { id: "deadlift_bw_200", name: "Тиран лифта", desc: "Становая ≥ 2 × собственный вес", rarity: 1, icon: "🦖", hidden: false,
     check: (h, bw) => bw > 0 && maxWeightPart(h, "станов") >= bw * 2.0, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "станов")), Math.floor(bw * 2)] : [0, 1] },
-  { id: "deadlift_bw_250", name: "Град-Молот", desc: "Становая ≥ 2.5 × собственный вес", rarity: 2, icon: "", hidden: false,
+  { id: "deadlift_bw_250", name: "Град-Молот", desc: "Становая ≥ 2.5 × собственный вес", rarity: 2, icon: "🔨", hidden: false,
     check: (h, bw) => bw > 0 && maxWeightPart(h, "станов") >= bw * 2.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "станов")), Math.floor(bw * 2.5)] : [0, 1] },
   { id: "squat_bw_150", name: "Ноги? Не слышал", desc: "Присед ≥ 1.5 × собственный вес", rarity: 0, icon: "🦵", hidden: false,
     check: (h, bw) => bw > 0 && maxWeightPart(h, "присед") >= bw * 1.5, progress: (h, bw) => bw > 0 ? [Math.floor(maxWeightPart(h, "присед")), Math.floor(bw * 1.5)] : [0, 1] },
@@ -219,7 +219,7 @@ const ACHIEVEMENTS = [
     progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const d=new Date(w.start);const k=d.getFullYear()*12+d.getMonth();a[k]=(a[k]||0)+1;return a},{}))), 20] },
   { id: "unbreakable", name: "Несгибаемый", desc: "4 недели подряд, в каждой ≥ 3 тренировок", rarity: 1, icon: "🔩", hidden: false,
     check: (h) => longestChain(weekKeysWithMin(h, 3)) >= 4, progress: (h) => [longestChain(weekKeysWithMin(h, 3)), 4] },
-  { id: "immortal", name: "Бессмертный", desc: "52 недели подряд без пустой недели", rarity: 2, icon: "", hidden: false,
+  { id: "immortal", name: "Бессмертный", desc: "52 недели подряд без пустой недели", rarity: 2, icon: "🏛", hidden: false,
     check: (h) => longestChain(weekKeysWithMin(h, 1)) >= 52, progress: (h) => [longestChain(weekKeysWithMin(h, 1)), 52] },
   { id: "monday_hero", name: "Понедельничный герой", desc: "10 недель подряд с тренировкой в понедельник", rarity: 1, icon: "⏰", hidden: false,
     check: (h) => longestChain(weekKeysWithMin(h, 1, 1)) >= 10, progress: (h) => [longestChain(weekKeysWithMin(h, 1, 1)), 10] },
@@ -236,15 +236,15 @@ const ACHIEVEMENTS = [
     progress: (h) => [Math.max(...Object.values(h.reduce((a,w)=>{const k=new Date(w.start).toDateString();a[k]=(a[k]||0)+repsOf(w);return a},{}))), 1000] },
   { id: "thousand_reps", name: "Тысяча повторов", desc: "≥ 1000 повторений за одну тренировку", rarity: 0, icon: "🧮", hidden: false,
     check: (h) => Math.max(0, ...h.map(repsOf)) >= 1000, progress: (h) => [Math.max(0, ...h.map(repsOf)), 1000] },
-  { id: "marathon", name: "Марафонец", desc: "Тренировка длительностью 2 часа и больше", rarity: 2, icon: "", hidden: false,
+  { id: "marathon", name: "Марафонец", desc: "Тренировка длительностью 2 часа и больше", rarity: 2, icon: "⏱", hidden: false,
     check: (h) => Math.max(0, ...h.map(w => w.end - w.start)) >= 2 * 3600 * 1000, progress: (h) => [Math.floor(Math.max(0, ...h.map(w => (w.end - w.start)/60000))), 120] },
-  { id: "scout", name: "Разведчик", desc: "8 разных упражнений в истории", rarity: 0, icon: "", hidden: false,
+  { id: "scout", name: "Разведчик", desc: "8 разных упражнений в истории", rarity: 0, icon: "🔭", hidden: false,
     check: (h) => distinctNames(h) >= 8, progress: (h) => [distinctNames(h), 8] },
-  { id: "collector", name: "Коллекционер", desc: "30 разных упражнений в истории", rarity: 1, icon: "", hidden: false,
+  { id: "collector", name: "Коллекционер", desc: "30 разных упражнений в истории", rarity: 1, icon: "📚", hidden: false,
     check: (h) => distinctNames(h) >= 30, progress: (h) => [distinctNames(h), 30] },
-  { id: "full_gym", name: "Полный зал", desc: "За неделю: жим, присед, становая, подтягивания, тяга в наклоне", rarity: 1, icon: "", hidden: false,
+  { id: "full_gym", name: "Полный зал", desc: "За неделю: жим, присед, становая, подтягивания, тяга в наклоне", rarity: 1, icon: "🏋", hidden: false,
     check: (h) => fullGymAnyWeek(h), progress: null },
-  { id: "deadpath", name: "Дедпуть", desc: "Тренировка, начавшаяся после 23:00", rarity: 1, icon: "", hidden: true, check: (h) => h.some(w => hourOf(w.start) >= 23), progress: null },
+  { id: "deadpath", name: "Дедпуть", desc: "Тренировка, начавшаяся после 23:00", rarity: 1, icon: "🎭", hidden: true, check: (h) => h.some(w => hourOf(w.start) >= 23), progress: null },
   { id: "bulkan", name: "Булкан одобряет", desc: "Кот был рядом во время тренировки", rarity: 1, icon: "🐱", hidden: true, check: (h) => h.some(w => w.bulkan), progress: null },
   { id: "nomusic", name: "Без музыки", desc: "Тренировка без музыки", rarity: 1, icon: "🔇", hidden: true, check: (h) => h.some(w => w.nomusic), progress: null },
   { id: "silence", name: "Тишина", desc: "5 тренировок подряд без музыки", rarity: 2, icon: "🎧", hidden: false, check: (h) => silenceStreak(h), progress: null },
@@ -769,7 +769,6 @@ window.importBaseFromHistory = () => {
   save(); render();
 };
 
-// === TOAST ===
 function toast(msg) {
   let t = document.getElementById('toast');
   if (!t) {
@@ -911,7 +910,9 @@ const headerFor = () => {
     ACHIEVEMENTS: `Ачивки ${state.earnedAch.size} / ${ACHIEVEMENTS.length}`,
     SUMMARY: "Тренировка завершена",
     WATER: "Трекер воды",
-    RPG: "Имперский гвардеец"
+    RPG: "Имперский гвардеец",
+    WRAPPED: "GymLog Wrapped",
+    BRIEFING: "Утренний брифинг"
   };
   return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${titles[state.screen] || ""}</h2>`;
 };
@@ -925,7 +926,9 @@ const renderHome = () => `
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='STATS';state.summaryReturn='HOME';render()">Статистика упражнений</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='HISTORY';state.summaryReturn='HOME';render()">История тренировок</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WATER';render()">💧 Трекер воды</button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='RPG';render()">🦅 SportHammer 40k</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='RPG';render()">🦅 Имперский гвардеец</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WRAPPED';render()">🎉 GymLog Wrapped</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='BRIEFING';render()">📰 Утренний брифинг</button>
   <button class="btn-primary" style="height:72px;font-size:22px" onclick="state.screen='SETTINGS';render()">Настройки</button>
   <div class="footer">Производство: Агафон Дристунцов © 2026</div>
 `;
@@ -933,9 +936,19 @@ const renderHome = () => `
 const renderWater = () => `
   <iframe src="./water.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
 `;
+
 const renderRPG = () => `
   <iframe src="./rpg.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
 `;
+
+const renderWrapped = () => `
+  <iframe src="./wrapped.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
+
+const renderBriefing = () => `
+  <iframe src="./briefing.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
+
 const renderFuture = () => `
   <button class="btn-primary" style="height:64px;margin-bottom:16px;font-size:18px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">+ Новая</button>
   ${state.drafts.length === 0 ? '<div class="empty">Пока пусто. Создай черновик и сохрани его здесь.</div>' : ""}
@@ -1006,7 +1019,7 @@ const renderHistory = () => `
         <div style="flex:1">
           <h3>${fmtDateTime(sw.start)}</h3>
           <div class="meta">${setsOf(sw)} подходов · объём ${Math.round(volumeOf(sw))} кг · ${fmtDuration(sw.end - sw.start)}</div>
-          ${sw.bulkan || sw.nomusic ? `<div class="meta">${sw.bulkan?'🐱':''} ${sw.nomusic?'':''}</div>` : ''}
+          ${sw.bulkan || sw.nomusic ? `<div class="meta">${sw.bulkan?'🐱':''} ${sw.nomusic?'🔇':''}</div>` : ''}
         </div>
         <button class="btn-small btn-danger" onclick="event.stopPropagation();deleteHistoryByIndex(${i})">Удалить</button>
       </div>
@@ -1180,9 +1193,9 @@ const render = () => {
   const contentFns = {
     HOME: renderHome, FUTURE: renderFuture, WORKOUT: renderWorkout, HISTORY: renderHistory,
     STATS: renderStats, SETTINGS: renderSettings, BASE: renderBase, ACHIEVEMENTS: renderAchievements,
-    SUMMARY: renderSummary, WATER: renderWater, RPG: renderRPG
+    SUMMARY: renderSummary, WATER: renderWater, RPG: renderRPG, WRAPPED: renderWrapped, BRIEFING: renderBriefing
   };
-  app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${state.screen==='WATER'?' no-pad':''}">${contentFns[state.screen]()}</div>`;
+  app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${(state.screen==='WATER'||state.screen==='RPG'||state.screen==='WRAPPED'||state.screen==='BRIEFING')?' no-pad':''}">${contentFns[state.screen]()}</div>`;
   const newContent = document.querySelector('.app-content');
   if (newContent) newContent.scrollTop = sameScreen ? oldScroll : 0;
   lastScreen = state.screen;
