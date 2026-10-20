@@ -922,6 +922,7 @@ const headerFor = () => {
 // === ЭКРАНЫ ===
 const renderHome = () => `
   ${state.active ? `<button class="btn-secondary" style="height:80px;margin-bottom:16px" onclick="continueActive()"><div style="font-size:20px;font-weight:600">▶ Продолжить тренировку</div><div style="font-size:12px;color:#888;margin-top:4px">идёт с ${fmtDateTime(state.active.start)}</div></button>` : ""}
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='BRIEFING';render()">📰 Утренний брифинг</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">Новая тренировка</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='FUTURE';render()">Будущие тренировки${state.drafts.length ? ` (${state.drafts.length})` : ""}</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='ACHIEVEMENTS';render()">🏆 Ачивки (${state.earnedAch.size}/${ACHIEVEMENTS.length})</button>
@@ -930,7 +931,6 @@ const renderHome = () => `
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WATER';render()">💧 Трекер воды</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='RPG';render()">🦅 Имперский гвардеец</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WRAPPED';render()">🎉 GymLog Wrapped</button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='BRIEFING';render()">📰 Утренний брифинг</button>
   <button class="btn-primary" style="height:72px;font-size:22px" onclick="state.screen='SETTINGS';render()">Настройки</button>
   <div class="footer">Производство: Агафон Дристунцов © 2026</div>
 `;
