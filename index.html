@@ -295,15 +295,15 @@ const state = {
   flagNomusic: false
 };
 
-if (!LS.get("achRetro", false)) {
+// Пересчёт ачивок при каждом запуске на основе текущей истории
+{
   const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
-  const newOnes = evaluateNew(state.history, bw, state.earnedAch);
-  if (newOnes.length > 0) {
-    const obj = LS.get("earnedAch", {});
-    newOnes.forEach(a => obj[a.id] = Date.now());
-    LS.set("earnedAch", obj);
-  }
-  LS.set("achRetro", true);
+  const freshEarned = new Set();
+  const newOnes = evaluateNew(state.history, bw, freshEarned);
+  const obj = {};
+  newOnes.forEach(a => obj[a.id] = Date.now());
+  state.earnedAch = freshEarned;
+  LS.set("earnedAch", obj);
 }
 
 let tickInterval = null;
