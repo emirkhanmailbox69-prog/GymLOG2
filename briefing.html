@@ -21,6 +21,7 @@ h1{font-size:26px;font-weight:800;margin-bottom:2px}
 .ev b{color:#d4af37}
 .quote{font-style:italic;color:#c9b57f}
 .err{color:#888;font-size:14px}
+.retry{margin-top:10px;background:#1f2a44;color:#a8b8ff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -32,6 +33,7 @@ const D = new Date();
 document.getElementById('dline').textContent = D.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 const pad = n => String(n).padStart(2,'0');
 const MM = pad(D.getMonth()+1), DD = pad(D.getDate());
+const MGEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const WMO = {0:'ясно, небо чистое',1:'в основном ясно',2:'переменная облачность',3:'пасмурно',45:'туман',48:'изморозь',51:'лёгкая морось',53:'морось',55:'сильная морось',61:'небольшой дождь',63:'дождь',65:'сильный дождь',71:'небольшой снег',73:'снег',75:'сильный снег',80:'ливни',81:'ливни',82:'сильные ливни',95:'гроза',96:'гроза с градом',99:'гроза с градом'};
 const wemo = c => c<=1?'☀️':c<=2?'⛅':c<=3?'☁️':c<=48?'🌫':c<=57?'🌦':c<=67?'🌧':c<=77?'❄️':c<=82?'🌧':c<=99?'⛈':'';
 const QUOTES = [
@@ -42,6 +44,55 @@ const QUOTES = [
  'Бросай штангу громко: пусть рекруты знают, что старик ещё в строю.'
 ];
 
+async function tryJson(url){
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function evCard(evs, note){
+  return `<div class="card"><h3>В этот день в истории${note?' · '+note:''}</h3>${evs.map(e=>`<div class="ev"><b>${e[0]}</b> — ${e[1]}</div>`).join('')}</div>`;
+}
+
+async function hist(){
+  // Уровень 1: REST API ru, подборка
+  try{
+    const j = await tryJson(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
+    const evs = (j.events||[]).slice(0,5);
+    if(evs.length) return evCard(evs.map(e=>[e.year, e.text]));
+  }catch(e){}
+  // Уровень 2: REST API ru, полный список
+  try{
+    const j = await tryJson(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/all/${MM}/${DD}`);
+    const evs = (j.events||[]).slice(0,5);
+    if(evs.length) return evCard(evs.map(e=>[e.year, e.text]));
+  }catch(e){}
+  // Уровень 3: страница даты на ru.wikipedia («19 октября»), раздел «События»
+  try{
+    const page = encodeURIComponent(D.getDate() + ' ' + MGEN[D.getMonth()]);
+    const j = await tryJson(`https://ru.wikipedia.org/w/api.php?action=parse&page=${page}&prop=text&format=json&formatversion=2&origin=*`);
+    const doc = new DOMParser().parseFromString(j.parse.text, 'text/html');
+    const h2 = [...doc.querySelectorAll('h2')].find(x => /События/i.test(x.textContent));
+    let ul = h2 ? h2.nextElementSibling : null;
+    while(ul && ul.tagName !== 'UL') ul = ul.nextElementSibling;
+    if(ul){
+      const evs = [...ul.querySelectorAll('li')].slice(0,5).map(li=>{
+        const t = li.textContent.replace(/\[\d+\]/g,'').replace(/\s+/g,' ').trim();
+        const m = t.match(/^([0-9]+)\s*[—-]\s*(.*)$/);
+        return m ? [m[1], m[2]] : ['…', t];
+      });
+      if(evs.length) return evCard(evs);
+    }
+  }catch(e){}
+  // Уровень 4: англоязычная Википедия
+  try{
+    const j = await tryJson(`https://en.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
+    const evs = (j.events||[]).slice(0,5);
+    if(evs.length) return evCard(evs.map(e=>[e.year, e.text]), 'оригинал на английском');
+  }catch(e){}
+  return `<div class="card"><h3>В этот день в истории</h3><div class="err">Архивы не отвечают: то ли интернет капризничает, то ли Википедия решила, что сегодня история не нужна.</div><button class="retry" onclick="location.reload()">Обновить</button></div>`;
+}
+
 async function weather(){
   try{
     const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=59.93&longitude=30.33&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FMoscow&forecast_days=1');
@@ -50,19 +101,11 @@ async function weather(){
     return `<div class="card"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(c.temperature_2m)}°</div><div class="wsub">${wemo(c.weather_code)} ${WMO[c.weather_code]||'погода'}<br>ощущается как ${Math.round(c.apparent_temperature)}°, ветер ${Math.round(c.wind_speed_10m)} м/с</div></div><div class="wsub" style="margin-top:8px">днём ${Math.round(d.temperature_2m_max[0])}° / ночью ${Math.round(d.temperature_2m_min[0])}°, шанс осадков ${d.precipitation_probability_max[0]}%</div></div>`;
   }catch(e){ return `<div class="card"><h3>Питер сейчас</h3><div class="err">Погода не отвечает. Выгляни в окно — надёжнее.</div></div>`; }
 }
-async function hist(){
-  try{
-    let r = await fetch(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
-    if(!r.ok) r = await fetch(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/all/${MM}/${DD}`);
-    const j = await r.json();
-    const evs = (j.events||[]).slice(0,5);
-    if(!evs.length) return `<div class="card"><h3>В этот день в истории</h3><div class="err">Википедия сегодня молчит. Подозрительно.</div></div>`;
-    return `<div class="card"><h3>В этот день в истории</h3>${evs.map(e=>`<div class="ev"><b>${e.year}</b> — ${e.text}</div>`).join('')}</div>`;
-  }catch(e){ return `<div class="card"><h3>В этот день в истории</h3><div class="err">Архивы не отвечают. Проверь интернет.</div></div>`; }
-}
+
 function quote(){
   return `<div class="card"><h3>Мысль дня</h3><div class="quote">«${QUOTES[(D.getDate()+D.getMonth())%QUOTES.length]}»</div></div>`;
 }
+
 (async()=>{
   const w = await weather();
   const h = await hist();
