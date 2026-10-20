@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <meta name="apple-mobile-web-app-title" content="GymLog">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="apple-touch-icon" href="./icon-app.png">
@@ -910,7 +910,8 @@ const headerFor = () => {
     BASE: `База упражнений (${state.exerciseBase.length})`,
     ACHIEVEMENTS: `Ачивки ${state.earnedAch.size} / ${ACHIEVEMENTS.length}`,
     SUMMARY: "Тренировка завершена",
-    WATER: "Трекер воды"
+    WATER: "Трекер воды",
+    RPG: "Имперский гвардеец"
   };
   return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${titles[state.screen] || ""}</h2>`;
 };
@@ -924,6 +925,7 @@ const renderHome = () => `
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='STATS';state.summaryReturn='HOME';render()">Статистика упражнений</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='HISTORY';state.summaryReturn='HOME';render()">История тренировок</button>
   <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WATER';render()">💧 Трекер воды</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='RPG';render()">🦅 SportHammer 40k</button>
   <button class="btn-primary" style="height:72px;font-size:22px" onclick="state.screen='SETTINGS';render()">Настройки</button>
   <div class="footer">Производство: Агафон Дристунцов © 2026</div>
 `;
@@ -931,7 +933,9 @@ const renderHome = () => `
 const renderWater = () => `
   <iframe src="./water.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
 `;
-
+const renderRPG = () => `
+  <iframe src="./rpg.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
 const renderFuture = () => `
   <button class="btn-primary" style="height:64px;margin-bottom:16px;font-size:18px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">+ Новая</button>
   ${state.drafts.length === 0 ? '<div class="empty">Пока пусто. Создай черновик и сохрани его здесь.</div>' : ""}
@@ -1176,7 +1180,7 @@ const render = () => {
   const contentFns = {
     HOME: renderHome, FUTURE: renderFuture, WORKOUT: renderWorkout, HISTORY: renderHistory,
     STATS: renderStats, SETTINGS: renderSettings, BASE: renderBase, ACHIEVEMENTS: renderAchievements,
-    SUMMARY: renderSummary, WATER: renderWater
+    SUMMARY: renderSummary, WATER: renderWater, RPG: renderRPG
   };
   app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${state.screen==='WATER'?' no-pad':''}">${contentFns[state.screen]()}</div>`;
   const newContent = document.querySelector('.app-content');
