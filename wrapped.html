@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<title>GymLog Wrapped</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#prog{display:flex;gap:4px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));position:fixed;top:0;left:0;right:0;z-index:5}
+#prog i{flex:1;height:3px;background:#2a2a2a;border-radius:2px}
+#prog i.on{background:#4a6bff}
+#card{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:56px 24px 64px;text-align:center}
+.kicker{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:16px}
+.big{font-size:54px;font-weight:800;line-height:1.05;margin-bottom:12px}
+.mid{font-size:22px;font-weight:700;margin-bottom:10px}
+.txt{font-size:16px;color:#bbb;line-height:1.55;max-width:420px}
+.accent{color:#4a6bff}.gold{color:#d4af37}
+.bars{display:flex;align-items:flex-end;gap:5px;height:110px;margin:20px 0 6px;width:100%;max-width:340px}
+.bars div{flex:1;background:linear-gradient(180deg,#6a8bff,#2a4abf);border-radius:4px 4px 0 0;min-height:3px}
+.bars-lbl{display:flex;gap:5px;width:100%;max-width:340px;font-size:10px;color:#888}
+.bars-lbl div{flex:1;text-align:center}
+.nav{position:fixed;inset:0;display:flex;z-index:4}
+.nav .l{width:32%;height:100%}
+.nav .r{flex:1;height:100%}
+.hint{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:11px;color:#555;z-index:5}
+.yearchips{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.yearchips button{background:#1f1f1f;border:1px solid #2a2a2a;color:#e8e8e8;border-radius:20px;padding:8px 14px;font-size:14px;cursor:pointer}
+.yearchips button.on{background:#4a6bff;border-color:#4a6bff;color:#fff}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div id="card"></div>
+<div class="nav"><div class="l" onclick="prev()"></div><div class="r" onclick="next()"></div></div>
+<div class="hint">тап справа — дальше, тап слева — назад</div>
+<script>
+const H = JSON.parse(localStorage.getItem('history') || '[]');
+const fmt = n => Math.round(n).toLocaleString('ru-RU');
+const weekIdx = ms => { const d = new Date(ms); const day = d.getDay()===0?7:d.getDay(); return Math.floor((d.getTime() - (day-1)*864e5) / (7*864e5)); };
+const longestChain = set => { const a=[...set].sort((x,y)=>x-y); let b=1,c=1; for(let i=1;i<a.length;i++){ c = a[i]===a[i-1]+1 ? c+1 : 1; b=Math.max(b,c);} return a.length?b:0; };
+
+const YEARS = [...new Set(H.map(w=>new Date(w.start).getFullYear()))].sort((a,b)=>b-a);
+let year = YEARS[0] || new Date().getFullYear();
+let cards = [], idx = 0;
+
+const QUOTES = [
+ 'Штанга не лжёт. Это единственная честная вещь в галактике.',
+ 'Боль — это пошлина прогрессу. Плати её полностью.',
+ 'Отдых — тоже служба. Вымотанный солдат есть мёртвый солдат.',
+ 'Каждый подход — это молитва, совершаемая железом.'
+];
+
+function build(y){
+  const ws = H.filter(w => new Date(w.start).getFullYear() === y).sort((a,b)=>a.start-b.start);
+  const out = [];
+  if (!ws.length){
+    out.push(`<div class="kicker">GymLog Wrapped ${y}</div><div class="big">🕸</div><div class="txt">В ${y} году кампаний не было. Пустой год в архивах Муниторума. Исправь это.</div>`);
+    return out;
+  }
+  let vol=0, sets=0, reps=0, ms=0, bulkan=0, nomusic=0, late=0;
+  const exSets={}, exTimes={}, monthVol=Array(12).fill(0), dayCnt=Array(7).fill(0);
+  const hourCnt={'утро':0,'день':0,'вечер':0,'ночь':0};
+  let maxLift=null;
+  const weekSets=new Set();
+  ws.forEach(w=>{
+    const d=new Date(w.start), h=d.getHours();
+    ms += (w.end||w.start) - w.start;
+    if (w.bulkan) bulkan++; if (w.nomusic) nomusic++; if (h>=23) late++;
+    dayCnt[(d.getDay()+6)%7]++;
+    weekSets.add(weekIdx(w.start));
+    const bucket = (h>=5&&h<11)?'утро':(h>=11&&h<17)?'день':(h<23)?'вечер':'ночь';
+    hourCnt[bucket]++;
+    (w.exercises||[]).forEach(e=>{
+      exTimes[e.name]=(exTimes[e.name]||0)+1;
+      (e.lines||[]).forEach(l=>{
+        const done=l.done||0; if(!done) return;
+        const v=(l.weight||0)*(l.reps||0)*done;
+        vol+=v; sets+=done; reps+=(l.reps||0)*done;
+        monthVol[d.getMonth()]+=v;
+        exSets[e.name]=(exSets[e.name]||0)+done;
+        if(!maxLift || (l.weight||0)>maxLift.w) maxLift={w:l.weight,name:e.name,date:w.start};
+      });
+    });
+  });
+  const hours = ms/3600000;
+  const fav = Object.entries(exSets).sort((a,b)=>b[1]-a[1])[0];
+  const bestMonth = monthVol.indexOf(Math.max(...monthVol));
+  const MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  const DL=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const bestDay = dayCnt.indexOf(Math.max(...dayCnt));
+  const favTime = Object.entries(hourCnt).sort((a,b)=>b[1]-a[1])[0];
+  const chain = longestChain(weekSets);
+  const weekCounts={}; ws.forEach(w=>{const k=weekIdx(w.start); weekCounts[k]=(weekCounts[k]||0)+1;});
+  const bestWeek = Math.max(...Object.values(weekCounts));
+  const avgMin = Math.round(ms/60000/ws.length);
+
+  out.push(`<div class="kicker">GymLog Wrapped · ${y}</div><div class="big accent">${ws.length}</div><div class="mid">кампаний проведено за год</div><div class="txt">Департаменто Муниторум подтверждает: ты служил. Листай дальше — там цифры, от которых у рекрутов отвалится лицо.</div>${YEARS.length>1?`<div class="yearchips">${YEARS.map(yy=>`<button class="${yy===y?'on':''}" onclick="setYear(${yy})">${yy}</button>`).join('')}</div>`:''}`);
+
+  const tons=(vol/1000).toFixed(1);
+  const granta=Math.round(vol/1200);
+  out.push(`<div class="kicker">Тоннаж</div><div class="big gold">${fmt(vol)} кг</div><div class="txt">Это ${tons} тонны железа. Примерно как ${granta} «Лады Гранты» или ${Math.max(1,Math.round(vol/30000))} танка Т-34. Ты перетаскал это руками.</div>`);
+
+  out.push(`<div class="kicker">Объём работы</div><div class="big">${fmt(sets)}</div><div class="mid">подходов · ${fmt(reps)} повторений</div><div class="txt">Если бы каждое повторение было ступенькой — ты бы поднялся на ${Math.max(1,Math.round(reps*0.5/3))} этажей. Лифт не нужен.</div>`);
+
+  out.push(`<div class="kicker">Любимое упражнение года</div><div class="big accent" style="font-size:34px">${fav?fav[0]:'—'}</div><div class="txt">${fav?`${fmt(fav[1])} подходов · встречалось в ${exTimes[fav[0]]} тренировках. Муниторум заносит его в твой постоянный арсенал.`:''}</div>`);
+
+  out.push(`<div class="kicker">Самый тяжёлый подъём</div><div class="big gold">${maxLift?maxLift.w:'—'} кг</div><div class="txt">${maxLift?`${maxLift.name} · ${new Date(maxLift.date).toLocaleDateString('ru-RU')}. В этот день гравитация подала жалобу.`:''}</div>`);
+
+  out.push(`<div class="kicker">Дисциплина</div><div class="big">${chain}</div><div class="mid">недель подряд без прогулов</div><div class="txt">Лучшая неделя: ${bestWeek} тренировок. Цепочку держал, как комиссар держит строй.</div>`);
+
+  const mBars = monthVol.map(v=>`<div style="height:${Math.max(4, v/Math.max(...monthVol)*100)}%"></div>`).join('');
+  out.push(`<div class="kicker">Лучший месяц</div><div class="mid accent">${MN[bestMonth]}</div><div class="bars">${mBars}</div><div class="bars-lbl">${MN.map(m=>`<div>${m[0]}</div>`).join('')}</div><div class="txt" style="margin-top:10px">Тоннаж по месяцам. Пики видны даже из космоса.</div>`);
+
+  const dBars = dayCnt.map(v=>`<div style="height:${Math.max(4, v/Math.max(...dayCnt)*100)}%"></div>`).join('');
+  out.push(`<div class="kicker">Расписание бойца</div><div class="mid">Любимый день: ${DL[bestDay]}</div><div class="mid accent">Любимое время: ${favTime[0]}</div><div class="bars" style="height:80px">${dBars}</div><div class="bars-lbl">${DL.map(d=>`<div>${d}</div>`).join('')}</div>`);
+
+  out.push(`<div class="kicker">Атмосфера службы</div><div class="txt" style="font-size:17px;line-height:2">🐱 Булкан был рядом: <b class="accent">${bulkan}</b><br>🔇 Без музыки: <b class="accent">${nomusic}</b><br>🌙 Ночные кампании (после 23:00): <b class="accent">${late}</b><br>⏱ В зале суммарно: <b class="accent">${hours.toFixed(1)} ч</b> (в среднем ${avgMin} мин за кампанию)<br>Это ${Math.max(1,Math.round(hours/8))} восьмичасовых рабочих смен. Оплаченных железом.</div>`);
+
+  out.push(`<div class="kicker">Итог ${y}</div><div class="big gold">${fmt(vol)} кг</div><div class="txt">«${QUOTES[(y+ws.length)%QUOTES.length]}»<br><br>Служба продолжается. Увидимся в следующем отчёте, боец.</div>`);
+  return out;
+}
+
+function render(){
+  document.getElementById('prog').innerHTML = cards.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('');
+  document.getElementById('card').innerHTML = cards[idx];
+}
+window.next = () => { if(idx<cards.length-1){idx++;render();} };
+window.prev = () => { if(idx>0){idx--;render();} };
+window.setYear = y => { year=y; cards=build(y); idx=0; render(); };
+cards = build(year); render();
+let tx=null;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{ if(tx===null)return; const dx=e.changedTouches[0].clientX-tx; if(dx<-40)next(); if(dx>40)prev(); tx=null;});
+</script>
+</body>
+</html>
