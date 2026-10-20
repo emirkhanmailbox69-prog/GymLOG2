@@ -8,12 +8,15 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#bg{position:fixed;inset:0;z-index:0;transition:opacity .3s;background:radial-gradient(120% 90% at 50% 0%, hsl(220 55% 10%), #0a0a0a 70%)}
+#fx{position:fixed;inset:0;z-index:6;pointer-events:none}
 #prog{display:flex;gap:4px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));position:fixed;top:0;left:0;right:0;z-index:5}
-#prog i{flex:1;height:3px;background:#2a2a2a;border-radius:2px}
+#prog i{flex:1;height:3px;background:#2a2a2a;border-radius:2px;transition:background .3s}
 #prog i.on{background:#4a6bff}
-#card{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:56px 24px 64px;text-align:center}
+#card{position:fixed;inset:0;z-index:3;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:56px 24px 64px;text-align:center}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
 .kicker{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:16px}
-.big{font-size:54px;font-weight:800;line-height:1.05;margin-bottom:12px}
+.big{font-size:54px;font-weight:800;line-height:1.05;margin-bottom:12px;font-variant-numeric:tabular-nums}
 .mid{font-size:22px;font-weight:700;margin-bottom:10px}
 .txt{font-size:16px;color:#bbb;line-height:1.55;max-width:420px}
 .accent{color:#4a6bff}.gold{color:#d4af37}
@@ -21,118 +24,204 @@ html,body{height:100%;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system
 .bars div{flex:1;background:linear-gradient(180deg,#6a8bff,#2a4abf);border-radius:4px 4px 0 0;min-height:3px}
 .bars-lbl{display:flex;gap:5px;width:100%;max-width:340px;font-size:10px;color:#888}
 .bars-lbl div{flex:1;text-align:center}
-.nav{position:fixed;inset:0;display:flex;z-index:4}
-.nav .l{width:32%;height:100%}
-.nav .r{flex:1;height:100%}
 .hint{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:11px;color:#555;z-index:5}
 .yearchips{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
-.yearchips button{background:#1f1f1f;border:1px solid #2a2a2a;color:#e8e8e8;border-radius:20px;padding:8px 14px;font-size:14px;cursor:pointer}
+.yearchips button{position:relative;z-index:7;background:#1f1f1f;border:1px solid #2a2a2a;color:#e8e8e8;border-radius:20px;padding:8px 14px;font-size:14px;cursor:pointer}
 .yearchips button.on{background:#4a6bff;border-color:#4a6bff;color:#fff}
+.podium{display:flex;gap:10px;justify-content:center;align-items:stretch;margin:18px 0;width:100%;max-width:400px}
+.pod{flex:1;background:#161616;border:1px solid #2a2a2a;border-radius:12px;padding:14px 8px;text-align:center}
+.pod .m{font-size:30px}
+.pod .n{font-size:13px;font-weight:700;margin:6px 0;line-height:1.25}
+.pod .s{font-size:12px;color:#888}
+.pod:nth-child(1){order:2;border-color:#d4af37;transform:scale(1.06)}
+.pod:nth-child(2){order:1;align-self:center}
+.pod:nth-child(3){order:3;align-self:center}
+.hm{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:1.5px;width:100%;max-width:340px;margin:16px auto 8px}
+.hm i{aspect-ratio:1;border-radius:1.5px;display:block}
+.hm i.e{background:transparent}
+.share{position:relative;z-index:7;margin-top:20px;background:#4a6bff;color:#fff;border:none;border-radius:24px;padding:14px 26px;font-size:16px;font-weight:600;cursor:pointer}
+.share:active{background:#3a5bef}
+.cpmsg{margin-top:10px;font-size:13px;color:#8aff8a;min-height:18px}
+.atmo{font-size:17px;line-height:2.1;text-align:left}
+.atmo b{color:#4a6bff}
 </style>
 </head>
 <body>
+<div id="bg"></div>
+<canvas id="fx"></canvas>
 <div id="prog"></div>
 <div id="card"></div>
-<div class="nav"><div class="l" onclick="prev()"></div><div class="r" onclick="next()"></div></div>
 <div class="hint">тап справа — дальше, тап слева — назад</div>
 <script>
 const H = JSON.parse(localStorage.getItem('history') || '[]');
 const fmt = n => Math.round(n).toLocaleString('ru-RU');
 const weekIdx = ms => { const d = new Date(ms); const day = d.getDay()===0?7:d.getDay(); return Math.floor((d.getTime() - (day-1)*864e5) / (7*864e5)); };
-const longestChain = set => { const a=[...set].sort((x,y)=>x-y); let b=1,c=1; for(let i=1;i<a.length;i++){ c = a[i]===a[i-1]+1 ? c+1 : 1; b=Math.max(b,c);} return a.length?b:0; };
-
-const YEARS = [...new Set(H.map(w=>new Date(w.start).getFullYear()))].sort((a,b)=>b-a);
-let year = YEARS[0] || new Date().getFullYear();
-let cards = [], idx = 0;
-
+const longestChain = set => { const a=[...set].sort((x,y)=>x-y); let b=0,c=0; for(let i=0;i<a.length;i++){ c = (i&&a[i]===a[i-1]+1) ? c+1 : 1; b=Math.max(b,c);} return b; };
+const volOf = w => (w.exercises||[]).reduce((a,e)=>a+(e.lines||[]).reduce((b,l)=>b+(l.weight||0)*(l.reps||0)*(l.done||0),0),0);
+const MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const DL=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const QUOTES = [
  'Штанга не лжёт. Это единственная честная вещь в галактике.',
  'Боль — это пошлина прогрессу. Плати её полностью.',
  'Отдых — тоже служба. Вымотанный солдат есть мёртвый солдат.',
  'Каждый подход — это молитва, совершаемая железом.'
 ];
+const fmtDur = ms => { const min=Math.round(ms/60000); const h=Math.floor(min/60); return h? `${h} ч ${min%60} мин` : `${min} мин`; };
+
+const YEARS = [...new Set(H.map(w=>new Date(w.start).getFullYear()))].sort((a,b)=>b-a);
+let year = YEARS[0] || new Date().getFullYear();
+let cards = [], idx = 0, SUMMARY = '';
 
 function build(y){
   const ws = H.filter(w => new Date(w.start).getFullYear() === y).sort((a,b)=>a.start-b.start);
   const out = [];
   if (!ws.length){
-    out.push(`<div class="kicker">GymLog Wrapped ${y}</div><div class="big">🕸</div><div class="txt">В ${y} году кампаний не было. Пустой год в архивах Муниторума. Исправь это.</div>`);
+    out.push({hue:220, h:`<div class="kicker">GymLog Wrapped ${y}</div><div class="big">🕸</div><div class="txt">В ${y} году кампаний не было. Пустой год в архивах Муниторума. Исправь это.</div>`});
     return out;
   }
   let vol=0, sets=0, reps=0, ms=0, bulkan=0, nomusic=0, late=0;
-  const exSets={}, exTimes={}, monthVol=Array(12).fill(0), dayCnt=Array(7).fill(0);
-  const hourCnt={'утро':0,'день':0,'вечер':0,'ночь':0};
-  let maxLift=null;
-  const weekSets=new Set();
+  const exSets={}, exTimes={}, monthVol=Array(12).fill(0), dayCnt=Array(7).fill(0), hourCnt={'утро':0,'день':0,'вечер':0,'ночь':0}, dayVol={};
+  let maxLift=null, maxDay=null;
+  const weekSets=new Set(), weekCounts={}, dur=[];
   ws.forEach(w=>{
     const d=new Date(w.start), h=d.getHours();
-    ms += (w.end||w.start) - w.start;
+    const wms=(w.end||w.start)-w.start;
+    ms+=wms; if(wms>0) dur.push({ms:wms,start:w.start});
     if (w.bulkan) bulkan++; if (w.nomusic) nomusic++; if (h>=23) late++;
     dayCnt[(d.getDay()+6)%7]++;
     weekSets.add(weekIdx(w.start));
-    const bucket = (h>=5&&h<11)?'утро':(h>=11&&h<17)?'день':(h<23)?'вечер':'ночь';
-    hourCnt[bucket]++;
+    const wk=weekIdx(w.start); weekCounts[wk]=(weekCounts[wk]||0)+1;
+    hourCnt[(h>=5&&h<11)?'утро':(h>=11&&h<17)?'день':(h<23)?'вечер':'ночь']++;
+    const wv=volOf(w);
+    dayVol[d.toDateString()]=(dayVol[d.toDateString()]||0)+wv;
+    if(!maxDay||wv>maxDay.v) maxDay={v:wv,start:w.start};
     (w.exercises||[]).forEach(e=>{
       exTimes[e.name]=(exTimes[e.name]||0)+1;
       (e.lines||[]).forEach(l=>{
         const done=l.done||0; if(!done) return;
-        const v=(l.weight||0)*(l.reps||0)*done;
-        vol+=v; sets+=done; reps+=(l.reps||0)*done;
-        monthVol[d.getMonth()]+=v;
+        vol+=(l.weight||0)*(l.reps||0)*done; sets+=done; reps+=(l.reps||0)*done;
+        monthVol[d.getMonth()]+=(l.weight||0)*(l.reps||0)*done;
         exSets[e.name]=(exSets[e.name]||0)+done;
         if(!maxLift || (l.weight||0)>maxLift.w) maxLift={w:l.weight,name:e.name,date:w.start};
       });
     });
   });
-  const hours = ms/3600000;
-  const fav = Object.entries(exSets).sort((a,b)=>b[1]-a[1])[0];
-  const bestMonth = monthVol.indexOf(Math.max(...monthVol));
-  const MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-  const DL=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  const bestDay = dayCnt.indexOf(Math.max(...dayCnt));
-  const favTime = Object.entries(hourCnt).sort((a,b)=>b[1]-a[1])[0];
-  const chain = longestChain(weekSets);
-  const weekCounts={}; ws.forEach(w=>{const k=weekIdx(w.start); weekCounts[k]=(weekCounts[k]||0)+1;});
-  const bestWeek = Math.max(...Object.values(weekCounts));
-  const avgMin = Math.round(ms/60000/ws.length);
+  const hours=ms/3600000, chain=longestChain(weekSets), bestWeek=Math.max(...Object.values(weekCounts));
+  const fav=Object.entries(exSets).sort((a,b)=>b[1]-a[1]);
+  const bestMonth=monthVol.indexOf(Math.max(...monthVol));
+  const bestDay=dayCnt.indexOf(Math.max(...dayCnt));
+  const favTime=Object.entries(hourCnt).sort((a,b)=>b[1]-a[1])[0];
+  const meters=Math.round(reps*0.5);
+  const prevVol=H.filter(w=>new Date(w.start).getFullYear()===y-1).reduce((a,w)=>a+volOf(w),0);
+  const priorMax={};
+  H.filter(w=>new Date(w.start).getFullYear()<y).forEach(w=>(w.exercises||[]).forEach(e=>(e.lines||[]).forEach(l=>{ if((l.done||0)>0) priorMax[e.name]=Math.max(priorMax[e.name]||0,l.weight||0); })));
+  const yearMax={};
+  ws.forEach(w=>(w.exercises||[]).forEach(e=>(e.lines||[]).forEach(l=>{ if((l.done||0)>0) yearMax[e.name]=Math.max(yearMax[e.name]||0,l.weight||0); })));
+  let prCount=0; for(const [n,wgt] of Object.entries(yearMax)) if(wgt>(priorMax[n]||0)) prCount++;
+  const bulkanPct=Math.round(bulkan/ws.length*100);
+  const avgMin=Math.round(ms/60000/ws.length);
+  const quote=QUOTES[(y+ws.length)%QUOTES.length];
 
-  out.push(`<div class="kicker">GymLog Wrapped · ${y}</div><div class="big accent">${ws.length}</div><div class="mid">кампаний проведено за год</div><div class="txt">Департаменто Муниторум подтверждает: ты служил. Листай дальше — там цифры, от которых у рекрутов отвалится лицо.</div>${YEARS.length>1?`<div class="yearchips">${YEARS.map(yy=>`<button class="${yy===y?'on':''}" onclick="setYear(${yy})">${yy}</button>`).join('')}</div>`:''}`);
+  out.push({hue:220, h:`<div class="kicker">GymLog Wrapped · ${y}</div><div class="big accent"><span data-cu="${ws.length}"></span></div><div class="mid">кампаний проведено за год</div><div class="txt">Департаменто Муниторум подтверждает: ты служил. Листай — дальше цифры, от которых у рекрутов отвалится лицо.</div>${YEARS.length>1?`<div class="yearchips">${YEARS.map(yy=>`<button class="${yy===y?'on':''}" onclick="setYear(${yy})">${yy}</button>`).join('')}</div>`:''}`});
 
-  const tons=(vol/1000).toFixed(1);
-  const granta=Math.round(vol/1200);
-  out.push(`<div class="kicker">Тоннаж</div><div class="big gold">${fmt(vol)} кг</div><div class="txt">Это ${tons} тонны железа. Примерно как ${granta} «Лады Гранты» или ${Math.max(1,Math.round(vol/30000))} танка Т-34. Ты перетаскал это руками.</div>`);
+  out.push({hue:45, h:`<div class="kicker">Тоннаж</div><div class="big gold"><span data-cu="${vol}"></span> кг</div><div class="txt">Это ${(vol/1000).toFixed(1)} тонны железа. Примерно как ${Math.round(vol/1200)} «Лады Гранты», ${Math.max(1,Math.round(vol/30000))} танка Т-34 или ${(vol/150000).toFixed(1)} синего кита (если кит согласен полежать).</div>`});
 
-  out.push(`<div class="kicker">Объём работы</div><div class="big">${fmt(sets)}</div><div class="mid">подходов · ${fmt(reps)} повторений</div><div class="txt">Если бы каждое повторение было ступенькой — ты бы поднялся на ${Math.max(1,Math.round(reps*0.5/3))} этажей. Лифт не нужен.</div>`);
+  if (prevVol>0){
+    const delta=Math.round((vol-prevVol)/prevVol*100);
+    out.push({hue:delta>=0?150:340, h:`<div class="kicker">Прогресс к ${y-1} году</div><div class="big ${delta>=0?'accent':''}">${delta>=0?'↑':'↓'} <span data-cu="${Math.abs(delta)}"></span>%</div><div class="mid">тоннажа год к году</div><div class="txt">Было ${fmt(prevVol)} кг — стало ${fmt(vol)} кг. ${delta>=0?'Муниторум повышает тебе паёк.':'Служба бывает разной. Главное — ты в строю.'}</div>`});
+  }
 
-  out.push(`<div class="kicker">Любимое упражнение года</div><div class="big accent" style="font-size:34px">${fav?fav[0]:'—'}</div><div class="txt">${fav?`${fmt(fav[1])} подходов · встречалось в ${exTimes[fav[0]]} тренировках. Муниторум заносит его в твой постоянный арсенал.`:''}</div>`);
+  out.push({hue:260, h:`<div class="kicker">Путь штанги</div><div class="big"><span data-cu="${meters}"></span> м</div><div class="mid">штанга прошла вверх-вниз за год</div><div class="txt">Это ${(meters/540).toFixed(1)} Останкинских башен или ${Math.round(meters/8848*100)}% Эвереста.${meters>=8848?' Ты буквально поднял Эверест. Альпинисты нервно курят.':' До Эвереста ещё пахать — но ты в пути.'}</div>`});
 
-  out.push(`<div class="kicker">Самый тяжёлый подъём</div><div class="big gold">${maxLift?maxLift.w:'—'} кг</div><div class="txt">${maxLift?`${maxLift.name} · ${new Date(maxLift.date).toLocaleDateString('ru-RU')}. В этот день гравитация подала жалобу.`:''}</div>`);
+  out.push({hue:210, h:`<div class="kicker">Объём работы</div><div class="big"><span data-cu="${sets}"></span></div><div class="mid">подходов · <span data-cu="${reps}"></span> повторений</div><div class="txt">Если бы каждое повторение было ступенькой — ты бы поднялся на ${Math.max(1,Math.round(reps*0.5/3))} этажей. Лифт не нужен.</div>`});
 
-  out.push(`<div class="kicker">Дисциплина</div><div class="big">${chain}</div><div class="mid">недель подряд без прогулов</div><div class="txt">Лучшая неделя: ${bestWeek} тренировок. Цепочку держал, как комиссар держит строй.</div>`);
+  out.push({hue:45, h:`<div class="kicker">Топ-3 упражнения года</div><div class="podium">${['🥇','🥈',''].map((m,i)=>fav[i]?`<div class="pod"><div class="m">${m}</div><div class="n">${fav[i][0]}</div><div class="s">${fmt(fav[i][1])} подходов</div></div>`:'').join('')}</div><div class="txt">${fav[0]?`«${fav[0][0]}» — твой главный калибр года: встречался в ${exTimes[fav[0][0]]} тренировках.`:''}</div>`});
 
-  const mBars = monthVol.map(v=>`<div style="height:${Math.max(4, v/Math.max(...monthVol)*100)}%"></div>`).join('');
-  out.push(`<div class="kicker">Лучший месяц</div><div class="mid accent">${MN[bestMonth]}</div><div class="bars">${mBars}</div><div class="bars-lbl">${MN.map(m=>`<div>${m[0]}</div>`).join('')}</div><div class="txt" style="margin-top:10px">Тоннаж по месяцам. Пики видны даже из космоса.</div>`);
+  out.push({hue:340, h:`<div class="kicker">Самый тяжёлый подъём</div><div class="big gold"><span data-cu="${maxLift?maxLift.w:0}"></span> кг</div><div class="txt">${maxLift?`${maxLift.name} · ${new Date(maxLift.date).toLocaleDateString('ru-RU')}. В этот день гравитация подала жалобу.`:''}</div>`});
 
-  const dBars = dayCnt.map(v=>`<div style="height:${Math.max(4, v/Math.max(...dayCnt)*100)}%"></div>`).join('');
-  out.push(`<div class="kicker">Расписание бойца</div><div class="mid">Любимый день: ${DL[bestDay]}</div><div class="mid accent">Любимое время: ${favTime[0]}</div><div class="bars" style="height:80px">${dBars}</div><div class="bars-lbl">${DL.map(d=>`<div>${d}</div>`).join('')}</div>`);
+  out.push({hue:45, h:`<div class="kicker">Самый плотный день</div><div class="big gold"><span data-cu="${maxDay?maxDay.v:0}"></span> кг</div><div class="mid">${maxDay?new Date(maxDay.start).toLocaleDateString('ru-RU',{day:'numeric',month:'long'}):''}</div><div class="txt">За один день ты перекидал столько, сколько иные полки не видят за неделю. Скамья просила пощады.</div>`});
 
-  out.push(`<div class="kicker">Атмосфера службы</div><div class="txt" style="font-size:17px;line-height:2">🐱 Булкан был рядом: <b class="accent">${bulkan}</b><br>🔇 Без музыки: <b class="accent">${nomusic}</b><br>🌙 Ночные кампании (после 23:00): <b class="accent">${late}</b><br>⏱ В зале суммарно: <b class="accent">${hours.toFixed(1)} ч</b> (в среднем ${avgMin} мин за кампанию)<br>Это ${Math.max(1,Math.round(hours/8))} восьмичасовых рабочих смен. Оплаченных железом.</div>`);
+  out.push({hue:45, fx:true, h:`<div class="kicker">Личные рекорды</div><div class="big accent"><span data-cu="${prCount}"></span></div><div class="mid">рекордов побито за год</div><div class="txt">Максимумы, которые раньше не сдавались. Муниторум вписывает их в личное дело золотыми чернилами.</div>`});
 
-  out.push(`<div class="kicker">Итог ${y}</div><div class="big gold">${fmt(vol)} кг</div><div class="txt">«${QUOTES[(y+ws.length)%QUOTES.length]}»<br><br>Служба продолжается. Увидимся в следующем отчёте, боец.</div>`);
+  out.push({hue:220, h:`<div class="kicker">Дисциплина</div><div class="big"><span data-cu="${chain}"></span></div><div class="mid">недель подряд без прогулов</div><div class="txt">Лучшая неделя: ${bestWeek} тренировок. Цепочку держал, как комиссар держит строй.</div>`});
+
+  out.push({hue:200, h:`<div class="kicker">Лучший месяц</div><div class="mid accent">${MN[bestMonth]}</div><div class="bars">${monthVol.map(v=>`<div style="height:${Math.max(4, v/Math.max(...monthVol)*100)}%"></div>`).join('')}</div><div class="bars-lbl">${MN.map(m=>`<div>${m[0]}</div>`).join('')}</div><div class="txt" style="margin-top:10px">Тоннаж по месяцам. Пики видны даже из космоса.</div>`});
+
+  out.push({hue:210, h:`<div class="kicker">Расписание бойца</div><div class="mid">Любимый день: ${DL[bestDay]}</div><div class="mid accent">Любимое время: ${favTime[0]}</div><div class="bars" style="height:80px">${dayCnt.map(v=>`<div style="height:${Math.max(4, v/Math.max(...dayCnt)*100)}%"></div>`).join('')}</div><div class="bars-lbl">${DL.map(d=>`<div>${d}</div>`).join('')}</div>`});
+
+  const startD=new Date(y,0,1), off=(startD.getDay()+6)%7, cells=[];
+  for(let i=0;i<off;i++) cells.push(null);
+  for(let d=new Date(startD); d.getFullYear()===y; d.setDate(d.getDate()+1)) cells.push(dayVol[d.toDateString()]||0);
+  while(cells.length%7) cells.push(null);
+  const maxC=Math.max(...cells.filter(c=>c!=null),1);
+  out.push({hue:230, h:`<div class="kicker">Карта службы</div><div class="hm">${cells.map(c=>c==null?'<i class="e"></i>':`<i style="background:rgba(74,107,255,${c?(0.15+0.85*Math.sqrt(c/maxC)).toFixed(2):0.08})"></i>`).join('')}</div><div class="txt">Каждый светящийся квадрат — день, когда ты не договорился с ленью. Чем ярче — тем больше железа.</div>`});
+
+  out.push({hue:260, h:`<div class="kicker">Атмосфера службы</div><div class="atmo">🐱 Булкан был рядом: <b>${bulkan}</b> (${bulkanPct}% кампаний)<br>🔇 Без музыки: <b>${nomusic}</b><br>🌙 Ночных кампаний (после 23:00): <b>${late}</b><br>⏱ В зале суммарно: <b><span data-cu="${hours}" data-cu-dec="1"></span> ч</b> (в среднем ${avgMin} мин)<br>Это ${Math.max(1,Math.round(hours/8))} восьмичасовых рабочих смен. Оплаченных железом.</div>`});
+
+  if (dur.length){
+    const lg=dur.reduce((a,b)=>a.ms>b.ms?a:b), sh=dur.reduce((a,b)=>a.ms<b.ms?a:b);
+    out.push({hue:280, h:`<div class="kicker">Марафон и спринт</div><div class="mid">Самая длинная: ${fmtDur(lg.ms)}</div><div class="txt" style="margin-bottom:14px">${new Date(lg.start).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}. Вышел размяться — очнулся через вечность.</div><div class="mid accent">Самая короткая: ${fmtDur(sh.ms)}</div><div class="txt">${new Date(sh.start).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}. Зато по делу. Обе засчитаны.</div>`});
+  }
+
+  SUMMARY = `🎉 GymLog Wrapped ${y}\n💪 Кампаний: ${ws.length}\n🏋 Тоннаж: ${fmt(vol)} кг (${(vol/1000).toFixed(1)} т)\n🔁 Подходов: ${fmt(sets)}, повторений: ${fmt(reps)}\n🏆 Рекордов побито: ${prCount}\n🔥 Лучшая серия: ${chain} недель\n🐱 Булкан рядом: ${bulkan} раз\n«${quote}»`;
+  out.push({hue:45, fx:true, h:`<div class="kicker">Итог ${y}</div><div class="big gold"><span data-cu="${vol}"></span> кг</div><div class="txt">«${quote}»<br><br>Служба продолжается. Увидимся в следующем отчёте, боец.</div><button class="share" onclick="shareWrapped()">📤 Поделиться итогом</button><div class="cpmsg" id="cpmsg"></div>`});
   return out;
+}
+
+function countUps(root){
+  root.querySelectorAll('[data-cu]').forEach(el=>{
+    const target=parseFloat(el.dataset.cu), dec=parseInt(el.dataset.cuDec||'0');
+    const t0=performance.now(), dur=900;
+    const step=t=>{
+      const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3), v=target*e;
+      el.textContent=dec? v.toFixed(dec) : Math.round(v).toLocaleString('ru-RU');
+      if(p<1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+let parts=[], fxRunning=false;
+const fxc=document.getElementById('fx'), fxx=fxc.getContext('2d');
+function sizeFx(){ const d=Math.min(2,devicePixelRatio||1); fxc.width=innerWidth*d; fxc.height=innerHeight*d; fxx.setTransform(d,0,0,d,0,0); }
+function confetti(){
+  sizeFx();
+  const colors=['#4a6bff','#d4af37','#ff5a5a','#8aff8a','#ffffff'];
+  for(let i=0;i<130;i++) parts.push({x:innerWidth/2+(Math.random()-0.5)*160,y:innerHeight*0.35,vx:(Math.random()-0.5)*9,vy:-Math.random()*9-3,g:0.25,s:3+Math.random()*4,r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3,c:colors[i%colors.length],life:0});
+  if(!fxRunning){fxRunning=true;requestAnimationFrame(fxStep);}
+}
+function fxStep(){
+  fxx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.life<160&&p.y<innerHeight+20);
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.r+=p.vr;p.life++;
+    fxx.save();fxx.translate(p.x,p.y);fxx.rotate(p.r);fxx.fillStyle=p.c;fxx.globalAlpha=Math.max(0,1-p.life/160);fxx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6);fxx.restore();});
+  if(parts.length) requestAnimationFrame(fxStep); else {fxRunning=false;fxx.clearRect(0,0,innerWidth,innerHeight);}
 }
 
 function render(){
   document.getElementById('prog').innerHTML = cards.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('');
-  document.getElementById('card').innerHTML = cards[idx];
+  const c=cards[idx], bg=document.getElementById('bg'), card=document.getElementById('card');
+  bg.style.opacity=0;
+  setTimeout(()=>{ bg.style.background=`radial-gradient(120% 90% at 50% 0%, hsl(${c.hue} 55% 10%), #0a0a0a 70%)`; bg.style.opacity=1; },150);
+  card.innerHTML=c.h;
+  card.style.animation='none'; void card.offsetWidth; card.style.animation='rise .45s ease';
+  countUps(card);
+  if(c.fx) setTimeout(confetti, 350);
 }
 window.next = () => { if(idx<cards.length-1){idx++;render();} };
 window.prev = () => { if(idx>0){idx--;render();} };
 window.setYear = y => { year=y; cards=build(y); idx=0; render(); };
-cards = build(year); render();
+window.shareWrapped = () => {
+  navigator.clipboard.writeText(SUMMARY).then(()=>{ const m=document.getElementById('cpmsg'); if(m) m.textContent='Скопировано! Теперь вставь куда хочешь.'; }).catch(()=>{});
+};
+document.getElementById('card').addEventListener('click', e=>{
+  if(e.target.closest('button')) return;
+  if(e.clientX < innerWidth*0.32) prev(); else next();
+});
 let tx=null;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
 document.addEventListener('touchend',e=>{ if(tx===null)return; const dx=e.changedTouches[0].clientX-tx; if(dx<-40)next(); if(dx>40)prev(); tx=null;});
+cards = build(year); render();
 </script>
 </body>
 </html>
