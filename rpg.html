@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<title>Имперский Гвардеец</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#0a0a0a;color:#e8d5a3;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.45}
+body{padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+.sheet{max-width:560px;margin:0 auto;border:3px double #d4af37;background:#12100b;padding:18px;position:relative}
+.sheet:before{content:"";position:absolute;inset:6px;border:1px solid #6b5a2a;pointer-events:none}
+.aquila{display:block;margin:0 auto 6px;width:190px;height:auto;fill:#d4af37}
+.dept{text-align:center;font-size:11px;letter-spacing:3px;color:#b89b5e;text-transform:uppercase;margin-bottom:2px}
+.dept2{text-align:center;font-size:10px;letter-spacing:2px;color:#7a6a45;text-transform:uppercase;margin-bottom:14px}
+.portrait-wrap{display:flex;gap:14px;align-items:stretch;margin-bottom:6px}
+.portrait{width:132px;height:132px;flex-shrink:0;border:2px solid #d4af37;background:#1c1a12;object-fit:cover;display:block}
+.portrait-fallback{width:132px;height:132px;flex-shrink:0;border:2px solid #d4af37;background:#1c1a12;display:flex;align-items:center;justify-content:center;font-size:64px}
+.who{flex:1;display:flex;flex-direction:column;justify-content:center}
+.rank-name{font-size:21px;font-weight:bold;color:#f0c75e;text-transform:uppercase;letter-spacing:2px;line-height:1.15}
+.rank-num{font-size:11px;letter-spacing:2px;color:#8a7748;text-transform:uppercase;margin-top:6px}
+.xp-block{margin-top:10px}
+.xp-label{display:flex;justify-content:space-between;font-size:11px;color:#b89b5e;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.xp-bar{height:14px;border:1px solid #d4af37;background:#000}
+.xp-fill{height:100%;background:linear-gradient(90deg,#7a5c17,#d4af37)}
+.section-h{font-size:13px;letter-spacing:3px;color:#d4af37;text-transform:uppercase;border-bottom:1px solid #6b5a2a;padding-bottom:4px;margin:16px 0 10px}
+.stat{margin-bottom:12px}
+.stat-top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
+.stat-name{text-transform:uppercase;letter-spacing:1px}
+.stat-val{color:#f0c75e;font-weight:bold}
+.stat-sub{font-size:11px;color:#8a7748;margin-top:2px}
+.bar{height:10px;border:1px solid #6b5a2a;background:#000;margin-top:4px}
+.bar i{display:block;height:100%}
+.bar.str i{background:#8b1a1a}
+.bar.tgh i{background:#2a6b2a}
+.bar.agi i{background:#1a4a8b}
+.deeds{font-size:14px}
+.deeds div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted #3a3323}
+.deeds span:last-child{color:#f0c75e}
+.titles li{margin:0 0 6px 18px;font-size:14px}
+.titles li b{color:#f0c75e}
+.quote{margin-top:14px;border:1px solid #6b5a2a;background:#171410;padding:10px 12px;font-style:italic;font-size:13px;color:#c9b57f}
+.quote .src{display:block;margin-top:6px;font-style:normal;font-size:10px;letter-spacing:2px;color:#7a6a45;text-transform:uppercase}
+.footer-sig{text-align:center;margin-top:14px;font-size:10px;letter-spacing:2px;color:#7a6a45;text-transform:uppercase}
+.stamp{position:absolute;right:14px;bottom:12px;border:2px solid #8b1a1a;color:#8b1a1a;font-size:10px;letter-spacing:2px;padding:4px 8px;transform:rotate(-8deg);text-transform:uppercase;opacity:.8}
+</style>
+</head>
+<body>
+<div class="sheet" id="sheet"></div>
+<script>
+const history = JSON.parse(localStorage.getItem('history') || '[]');
+const bw = parseFloat((localStorage.getItem('bodyWeight') || '').replace(',','.')) || 0;
+
+const isBench = (n) => { const s = n.toLowerCase(); return s.includes('жим') && !s.includes('стоя') && !s.includes('сидя') && !s.includes('наклон'); };
+
+let maxDead = 0, maxSquat = 0, maxBench = 0, totalVol = 0, totalSets = 0;
+history.forEach(w => (w.exercises || []).forEach(e => {
+  const n = (e.name || '').toLowerCase();
+  (e.lines || []).forEach(l => {
+    const wgt = l.weight || 0, done = l.done || 0, reps = l.reps || 0;
+    if (n.includes('станов')) maxDead = Math.max(maxDead, wgt);
+    if (n.includes('присед')) maxSquat = Math.max(maxSquat, wgt);
+    if (isBench(e.name || '')) maxBench = Math.max(maxBench, wgt);
+    totalVol += wgt * reps * done;
+    totalSets += done;
+  });
+}));
+
+const RANKS = [
+  { name: 'Рекрут', xp: 0, img: 'rank-1.png' },
+  { name: 'Гвардеец', xp: 10000, img: 'rank-2.png' },
+  { name: 'Кандидат в космодесантники', xp: 50000, img: 'rank-3.png' },
+  { name: 'Космодесантник', xp: 150000, img: 'rank-4.png' },
+  { name: 'Сержант', xp: 400000, img: 'rank-5.png' },
+  { name: 'Капитан', xp: 1000000, img: 'rank-6.png' },
+  { name: 'Первый капитан', xp: 2500000, img: 'rank-7.png' },
+  { name: 'Примарх', xp: 6000000, img: 'rank-8.png' }
+];
+
+let ri = 0;
+for (let i = 0; i < RANKS.length; i++) if (totalVol >= RANKS[i].xp) ri = i;
+const cur = RANKS[ri], next = RANKS[ri + 1] || null;
+const prog = next ? Math.max(0, Math.min(1, (totalVol - cur.xp) / (next.xp - cur.xp))) : 1;
+
+const fmtKg = (v) => Math.round(v).toLocaleString('ru-RU');
+const mult = (v) => bw > 0 ? (v / bw) : 0;
+const barPct = (v) => bw > 0 ? Math.min(100, (v / bw) / 3 * 100) : Math.min(100, v / 300 * 100);
+
+const week = history.filter(w => Date.now() - w.start < 7 * 864e5).length;
+const first = history.length ? Math.min(...history.map(w => w.start)) : null;
+const days = first ? Math.max(1, Math.floor((Date.now() - first) / 864e5)) : 0;
+
+const titles = [];
+if (bw > 0 && maxDead >= 2 * bw) titles.push(['Тиран лифта', 'становая ≥ 2 собственных весов']);
+if (bw > 0 && maxBench >= 1.25 * bw) titles.push(['Резидент жима', 'жим ≥ 1.25 собственного веса']);
+if (bw > 0 && maxSquat >= 1.5 * bw) titles.push(['Ноги Трона', 'присед ≥ 1.5 собственного веса']);
+if (totalVol >= 100000) titles.push(['Центурион тоннажа', 'суммарно перекинуто 100 тонн']);
+if (week >= 3) titles.push(['Несгибаемый недели', '3+ кампании за 7 дней']);
+if (history.length >= 50) titles.push(['Ветеран пятидесяти кампаний', '50+ тренировок']);
+if (!titles.length) titles.push(['Пока без благословений', 'служи дальше, боец']);
+
+const QUOTES = [
+  ['Император защищает тех, кто защищает себя железом.', 'Кодекс Силы, стих 12'],
+  ['Боль — это пошлина прогрессу. Плати её полностью.', 'Сержант Кейд, учебка'],
+  ['Штанга не лжёт. Это единственная честная вещь в галактике.', 'Департаменто Муниторум'],
+  ['Отдых — тоже служба. Вымотанный солдат есть мёртвый солдат.', 'Апотекарийский устав'],
+  ['Бросай штангу громко: пусть рекруты знают, что старик ещё в строю.', 'Неписаный кодекс зала'],
+  ['Каждый подход — это молитва, совершаемая железом.', 'Капеллан зала №7']
+];
+const q = QUOTES[(Math.floor(Date.now() / 864e5) + ri) % QUOTES.length];
+
+const AQUILA = '<svg class="aquila" viewBox="0 0 200 80"><path d="M100 40 L60 20 L65 32 L40 18 L48 32 L25 22 L35 36 L15 30 L30 42 L100 48 Z"/><path d="M100 40 L140 20 L135 32 L160 18 L152 32 L175 22 L165 36 L185 30 L170 42 L100 48 Z"/><path d="M92 38 L84 26 L88 24 L86 18 L94 22 L96 30 Z"/><path d="M108 38 L116 26 L112 24 L114 18 L106 22 L104 30 Z"/><circle cx="100" cy="42" r="6"/><path d="M96 48 L100 58 L104 48 Z"/></svg>';
+
+function imgFail(el) {
+  const d = document.createElement('div');
+  d.className = 'portrait-fallback';
+  d.textContent = '💂';
+  el.replaceWith(d);
+}
+window.imgFail = imgFail;
+
+document.getElementById('sheet').innerHTML = `
+  ${AQUILA}
+  <div class="dept">Департаменто Муниторум</div>
+  <div class="dept2">Личное дело военнослужащего · форма 40-А</div>
+  <div class="portrait-wrap">
+    <img class="portrait" src="./${cur.img}" alt="" onerror="imgFail(this)">
+    <div class="who">
+      <div class="rank-name">${cur.name}</div>
+      <div class="rank-num">ранг ${ri + 1} из ${RANKS.length}${next ? ' · следующий: ' + next.name : ' · максимальный ранг'}</div>
+      <div class="xp-block">
+        <div class="xp-label"><span>Опыт (тоннаж)</span><span>${fmtKg(totalVol)} / ${next ? fmtKg(next.xp) : 'MAX'} кг</span></div>
+        <div class="xp-bar"><div class="xp-fill" style="width:${(prog * 100).toFixed(1)}%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-h">Боевые характеристики</div>
+  <div class="stat">
+    <div class="stat-top"><span class="stat-name">Сила (становая)</span><span class="stat-val">${maxDead} кг</span></div>
+    <div class="stat-sub">${bw > 0 ? '×' + mult(maxDead).toFixed(2) + ' собственного веса' : 'укажи вес в настройках GymLog для множителя'}</div>
+    <div class="bar str"><i style="width:${barPct(maxDead).toFixed(0)}%"></i></div>
+  </div>
+  <div class="stat">
+    <div class="stat-top"><span class="stat-name">Выносливость (присед)</span><span class="stat-val">${maxSquat} кг</span></div>
+    <div class="stat-sub">${bw > 0 ? '×' + mult(maxSquat).toFixed(2) + ' собственного веса' : '—'}</div>
+    <div class="bar tgh"><i style="width:${barPct(maxSquat).toFixed(0)}%"></i></div>
+  </div>
+  <div class="stat">
+    <div class="stat-top"><span class="stat-name">Ловкость (жим лёжа)</span><span class="stat-val">${maxBench} кг</span></div>
+    <div class="stat-sub">${bw > 0 ? '×' + mult(maxBench).toFixed(2) + ' собственного веса' : '—'}</div>
+    <div class="bar agi"><i style="width:${barPct(maxBench).toFixed(0)}%"></i></div>
+  </div>
+  <div class="section-h">Послужной список</div>
+  <div class="deeds">
+    <div><span>Кампаний (тренировок)</span><span>${history.length}</span></div>
+    <div><span>Подходов совершено</span><span>${totalSets}</span></div>
+    <div><span>Тоннаж суммарный</span><span>${fmtKg(totalVol)} кг</span></div>
+    <div><span>Дней на службе</span><span>${days}</span></div>
+    <div><span>Первая кампания</span><span>${first ? new Date(first).toLocaleDateString('ru-RU') : '—'}</span></div>
+    <div><span>Активность за 7 дней</span><span>${week}</span></div>
+  </div>
+  <div class="section-h">Благословения главы</div>
+  <ul class="titles">${titles.map(t => `<li><b>${t[0]}</b> — ${t[1]}</li>`).join('')}</ul>
+  <div class="quote">«${q[0]}»<span class="src">— ${q[1]}</span></div>
+  <div class="footer-sig">Подпись комиссара: ____________ · печать приложена</div>
+  <div class="stamp">Одобрено<br>Муниторумом</div>
+`;
+</script>
+</body>
+</html>
