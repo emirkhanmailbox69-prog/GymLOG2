@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<title>Утренний брифинг</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+body{padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+h1{font-size:26px;font-weight:800;margin-bottom:2px}
+.date{color:#888;font-size:13px;margin-bottom:16px}
+.card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px}
+.card h3{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px}
+.wrow{display:flex;align-items:center;gap:14px}
+.wtemp{font-size:44px;font-weight:800;color:#4a6bff}
+.wsub{color:#bbb;font-size:14px;line-height:1.5}
+.ev{padding:8px 0;border-bottom:1px solid #1f1f1f;font-size:15px}
+.ev:last-child{border-bottom:none}
+.ev b{color:#d4af37}
+.quote{font-style:italic;color:#c9b57f}
+.err{color:#888;font-size:14px}
+</style>
+</head>
+<body>
+<h1>📰 Утренний брифинг</h1>
+<div class="date" id="dline"></div>
+<div id="feed"><div class="card"><div class="err">Собираю сводку…</div></div></div>
+<script>
+const D = new Date();
+document.getElementById('dline').textContent = D.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const pad = n => String(n).padStart(2,'0');
+const MM = pad(D.getMonth()+1), DD = pad(D.getDate());
+const WMO = {0:'ясно, небо чистое',1:'в основном ясно',2:'переменная облачность',3:'пасмурно',45:'туман',48:'изморозь',51:'лёгкая морось',53:'морось',55:'сильная морось',61:'небольшой дождь',63:'дождь',65:'сильный дождь',71:'небольшой снег',73:'снег',75:'сильный снег',80:'ливни',81:'ливни',82:'сильные ливни',95:'гроза',96:'гроза с градом',99:'гроза с градом'};
+const wemo = c => c<=1?'☀️':c<=2?'⛅':c<=3?'☁️':c<=48?'🌫':c<=57?'🌦':c<=67?'🌧':c<=77?'❄️':c<=82?'🌧':c<=99?'⛈':'';
+const QUOTES = [
+ 'Император защищает тех, кто защищает себя железом.',
+ 'Боль — это пошлина прогрессу. Плати её полностью.',
+ 'Штанга не лжёт. Это единственная честная вещь в галактике.',
+ 'Отдых — тоже служба. Вымотанный солдат есть мёртвый солдат.',
+ 'Бросай штангу громко: пусть рекруты знают, что старик ещё в строю.'
+];
+
+async function weather(){
+  try{
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=59.93&longitude=30.33&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FMoscow&forecast_days=1');
+    const j = await r.json();
+    const c = j.current, d = j.daily;
+    return `<div class="card"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(c.temperature_2m)}°</div><div class="wsub">${wemo(c.weather_code)} ${WMO[c.weather_code]||'погода'}<br>ощущается как ${Math.round(c.apparent_temperature)}°, ветер ${Math.round(c.wind_speed_10m)} м/с</div></div><div class="wsub" style="margin-top:8px">днём ${Math.round(d.temperature_2m_max[0])}° / ночью ${Math.round(d.temperature_2m_min[0])}°, шанс осадков ${d.precipitation_probability_max[0]}%</div></div>`;
+  }catch(e){ return `<div class="card"><h3>Питер сейчас</h3><div class="err">Погода не отвечает. Выгляни в окно — надёжнее.</div></div>`; }
+}
+async function hist(){
+  try{
+    let r = await fetch(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
+    if(!r.ok) r = await fetch(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/all/${MM}/${DD}`);
+    const j = await r.json();
+    const evs = (j.events||[]).slice(0,5);
+    if(!evs.length) return `<div class="card"><h3>В этот день в истории</h3><div class="err">Википедия сегодня молчит. Подозрительно.</div></div>`;
+    return `<div class="card"><h3>В этот день в истории</h3>${evs.map(e=>`<div class="ev"><b>${e.year}</b> — ${e.text}</div>`).join('')}</div>`;
+  }catch(e){ return `<div class="card"><h3>В этот день в истории</h3><div class="err">Архивы не отвечают. Проверь интернет.</div></div>`; }
+}
+function quote(){
+  return `<div class="card"><h3>Мысль дня</h3><div class="quote">«${QUOTES[(D.getDate()+D.getMonth())%QUOTES.length]}»</div></div>`;
+}
+(async()=>{
+  const w = await weather();
+  const h = await hist();
+  document.getElementById('feed').innerHTML = w + h + quote();
+})();
+</script>
+</body>
+</html>
