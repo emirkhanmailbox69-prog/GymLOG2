@@ -98,7 +98,7 @@ if (bw > 0 && maxSquat >= 1.5 * bw) titles.push(['Ноги Трона', 'при�
 if (totalVol >= 100000) titles.push(['Центурион тоннажа', 'суммарно перекинуто 100 тонн']);
 if (week >= 3) titles.push(['Несгибаемый недели', '3+ кампании за 7 дней']);
 if (history.length >= 50) titles.push(['Ветеран пятидесяти кампаний', '50+ тренировок']);
-if (!titles.length) titles.push(['Пока без благословений', 'служи дальше, боец']);
+if (!titles.length) titles.push(['Пока без благословений', 'служи дальше, дрыщ']);
 
 const QUOTES = [
   ['Император защищает тех, кто защищает себя железом.', 'Кодекс Силы, стих 12'],
@@ -123,7 +123,7 @@ window.imgFail = imgFail;
 document.getElementById('sheet').innerHTML = `
   ${AQUILA}
   <div class="dept">Департаменто Муниторум</div>
-  <div class="dept2">Личное дело военнослужащего · форма 40-А</div>
+  <div class="dept2">Личное дело · форма 40-А</div>
   <div class="portrait-wrap">
     <img class="portrait" src="./${cur.img}" alt="" onerror="imgFail(this)">
     <div class="who">
@@ -156,7 +156,7 @@ document.getElementById('sheet').innerHTML = `
     <div><span>Кампаний (тренировок)</span><span>${history.length}</span></div>
     <div><span>Подходов совершено</span><span>${totalSets}</span></div>
     <div><span>Тоннаж суммарный</span><span>${fmtKg(totalVol)} кг</span></div>
-    <div><span>Дней на службе</span><span>${days}</span></div>
+    <div><span>Дней в зале</span><span>${days}</span></div>
     <div><span>Первая кампания</span><span>${first ? new Date(first).toLocaleDateString('ru-RU') : '—'}</span></div>
     <div><span>Активность за 7 дней</span><span>${week}</span></div>
   </div>
