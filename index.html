@@ -1008,10 +1008,10 @@ const renderFuture = () => `
 
 const exerciseCard = (ex, ei, withNote) => `
   <div class="card" style="cursor:default">
-    <div class="row between">
+      <div class="row between" style="cursor:pointer;padding:6px 0" onclick="toggleExpand(${ei})">
       <h3 style="flex:1;margin-bottom:0">${ex.name}</h3>
-      <button class="icon-btn" onclick="toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
-      <button class="icon-btn" onclick="editExerciseByIndex(${ei})">изм.</button>
+      <button class="icon-btn" onclick="event.stopPropagation();toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
+      <button class="icon-btn" onclick="event.stopPropagation();editExerciseByIndex(${ei})">изм.</button>
     </div>
     ${state.expandedExercises.has(ei) ? `
       <div style="margin-top:8px">
