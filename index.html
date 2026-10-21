@@ -426,9 +426,10 @@ const save = () => {
   LS.set("bodyWeight", state.bodyWeightText);
   const achObj = {};
   state.earnedAch.forEach(id => achObj[id] = Date.now());
-  LS.set("earnedAch", achObj);
-  if (state.screen === "WORKOUT" && !state.editorMode && state.active) {
-    LS.set("active", { start: state.active.start, exercises: state.exercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic });
+   LS.set("earnedAch", achObj);
+  if (!state.editorMode && state.active) {
+   state.active = { start: state.active.start, exercises: state.exercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic };
+   LS.set("active", state.active);
   }
   cloudQueue();
 };
@@ -540,15 +541,17 @@ const editorBack = () => {
 };
 
 const activeBack = () => {
-  LS.set("active", { start: state.active.start, exercises: state.exercises, bulkan: state.flagBulkan, nomusic: state.flagNomusic });
+  save();
   state.screen = "HOME"; render();
 };
 
 const continueActive = () => {
-  if (!state.active) return;
-  state.exercises = state.active.exercises;
-  state.flagBulkan = state.active.bulkan || false;
-  state.flagNomusic = state.active.nomusic || false;
+  const saved = LS.get("active", null) || state.active;
+  if (!saved) return;
+  state.active = saved;
+  state.exercises = saved.exercises;
+  state.flagBulkan = saved.bulkan || false;
+  state.flagNomusic = saved.nomusic || false;
   state.editorMode = false; state.sourceDraftId = -1;
   resetTimerVisual(); state.screen = "WORKOUT"; render();
 };
@@ -1043,8 +1046,8 @@ const renderWorkout = () => {
   return `
     ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, true)).join("")}
     <div class="card" style="cursor:default">
-      <div class="switch-row" onclick="state.flagBulkan=!state.flagBulkan;render()"><div>🐱 Булкан был рядом</div><div class="switch ${state.flagBulkan?'on':''}"></div></div>
-      <div class="switch-row" style="padding-bottom:0" onclick="state.flagNomusic=!state.flagNomusic;render()"><div>🔇 Без музыки</div><div class="switch ${state.flagNomusic?'on':''}"></div></div>
+      <div class="switch-row" onclick="state.flagBulkan=!state.flagBulkan;save();render()"><div>🐱 Булкан был рядом</div><div class="switch ${state.flagBulkan?'on':''}"></div></div>
+      <div class="switch-row" style="padding-bottom:0" onclick="state.flagNomusic=!state.flagNomusic;save();render()"><div>🔇 Без музыки</div><div class="switch ${state.flagNomusic?'on':''}"></div></div>
     </div>
     <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
     <button class="btn-primary" style="height:72px;font-size:22px" onclick="finishWorkout()">Закончить тренировку</button>
