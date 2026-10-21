@@ -20,13 +20,15 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4}
 #app{max-width:600px;margin:0 auto;height:100vh;height:100dvh;position:relative}
-.app-header{position:absolute;top:0;left:0;right:0;z-index:6;padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:rgba(10,10,10,.68);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,.08)}
-.app-content{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
-.no-pad{padding-left:8px;padding-right:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
-.app-content.anim-fwd{animation:scrFwd .32s cubic-bezier(.22,1,.36,1)}
-.app-content.anim-back{animation:scrBack .32s cubic-bezier(.22,1,.36,1)}
+.app-content{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0}
+.screen{display:flex;flex-direction:column;min-height:100%}
+.screen.anim-fwd{animation:scrFwd .32s cubic-bezier(.22,1,.36,1)}
+.screen.anim-back{animation:scrBack .32s cubic-bezier(.22,1,.36,1)}
 @keyframes scrFwd{from{opacity:0;transform:translateX(56px)}to{opacity:1;transform:none}}
 @keyframes scrBack{from{opacity:0;transform:translateX(-56px)}to{opacity:1;transform:none}}
+.app-header{position:sticky;top:0;flex:0 0 auto;z-index:6;padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:rgba(10,10,10,.54);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,.08)}
+.inner{flex:1 0 auto;padding:16px;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+.no-pad .inner{padding-left:8px;padding-right:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
 h1{font-size:32px;font-weight:400;font-family:var(--disp)}
 h2{font-size:24px;font-weight:400;font-family:var(--disp)}
 h3{font-size:18px;font-weight:600;margin-bottom:8px}
@@ -53,7 +55,7 @@ button:active{background:#3a3a3a}
 @keyframes setpop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
 .line-row{padding:8px 0;border-bottom:1px solid #1f1f1f}
 .line-row:last-child{border-bottom:none}
-.timer-display{font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px;font-family:var(--disp)}
+.timer-display{font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px;font-family:var(--disp);width:178px;flex-shrink:0}
 .timer-mode{color:#888;font-size:13px;margin-top:4px}
 #timer-btn.running{animation:glowPulse 1.5s ease-in-out infinite}
 @keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,107,255,0)}50%{box-shadow:0 0 22px 2px rgba(74,107,255,.55)}}
@@ -88,12 +90,12 @@ canvas{width:100%;height:240px;display:block}
 .medal.earned{background:#1E1E1E;color:#fff}
 .medal.locked{background:#333;color:#777}
 .medal.bronze{border:3px solid #CD7F32}.medal.silver{border:3px solid #C0C0C0}.medal.gold{border:3px solid #D4AF37}.medal.platinum{border:3px solid #E5E4E2}
-.praise{font-size:28px;font-weight:400;font-family:var(--disp);color:#4a6bff;text-align:center;margin:8px 0}
+.praise{font-size:28px;font-weight:400;font-family:var(--disp);text-align:center;margin:8px 0;background:linear-gradient(90deg,#8ab4ff,#4a6bff 45%,#f0c75e);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .footer{text-align:center;color:#555;font-size:12px;margin-top:32px}
 .home-header{display:flex;align-items:center;gap:14px}
 .home-header img{width:84px;height:84px;border-radius:20px;object-fit:cover;border:2px solid #2a2a2a;background:#161616;flex-shrink:0;animation:breathe 4.5s ease-in-out infinite}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-.hh-title{font-size:30px;font-weight:400;font-family:var(--disp);letter-spacing:1px;line-height:1.1}
+.hh-title{font-size:30px;font-weight:400;font-family:var(--disp);letter-spacing:1px;line-height:1.1;background:linear-gradient(180deg,#ffffff,#8ab4ff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .hh-date{color:#888;font-size:13px;margin-top:2px}
 .muted{color:#888;font-size:12px;margin-top:8px}
 .toast{position:fixed;bottom:calc(40px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#4a6bff;color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
@@ -1264,6 +1266,17 @@ document.addEventListener('pointerdown', (e) => {
   setTimeout(() => s.remove(), 600);
 });
 
+// === iframe-модули: точная высота под шапкой ===
+let iframeFix = null;
+function fixIframe(sc, hdr){
+  const ifr = sc.querySelector('iframe');
+  if (!ifr) return;
+  const set = () => { ifr.style.height = Math.max(200, sc.clientHeight - (hdr ? hdr.offsetHeight : 0) - 16) + 'px'; };
+  set();
+  iframeFix = set;
+}
+window.addEventListener('resize', () => { if (iframeFix) iframeFix(); });
+
 const ORDER = {HOME:0,BRIEFING:1,FUTURE:2,WORKOUT:3,SUMMARY:4,HISTORY:5,STATS:6,ACHIEVEMENTS:7,WATER:8,RPG:9,WRAPPED:10,SETTINGS:11,BASE:12};
 const app = document.getElementById("app");
 let lastScreen = null;
@@ -1279,17 +1292,16 @@ const render = () => {
     SUMMARY: renderSummary, WATER: renderWater, RPG: renderRPG, WRAPPED: renderWrapped, BRIEFING: renderBriefing
   };
   const noPad = (state.screen==='WATER'||state.screen==='RPG'||state.screen==='WRAPPED'||state.screen==='BRIEFING');
-  app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${noPad?' no-pad':''}">${contentFns[state.screen]()}</div>`;
+  app.innerHTML = `<div class="app-content${noPad?' no-pad':''}"><div class="screen${changed?(dirBack?' anim-back':' anim-fwd'):''}"><div class="app-header">${headerFor()}</div><div class="inner">${contentFns[state.screen]()}</div></div></div>`;
   const newContent = document.querySelector('.app-content');
-  const hdr = document.querySelector('.app-header');
+  const hdr = newContent ? newContent.querySelector('.app-header') : null;
+  const scr = newContent ? newContent.querySelector('.screen') : null;
+  if (scr && changed) {
+    scr.addEventListener('animationend', () => scr.classList.remove('anim-fwd','anim-back'), {once:true});
+  }
   if (newContent) {
-    if (hdr) newContent.style.paddingTop = (hdr.offsetHeight + 10) + 'px';
-    if (changed) {
-      newContent.classList.add(dirBack ? 'anim-back' : 'anim-fwd');
-      newContent.scrollTop = 0;
-    } else {
-      newContent.scrollTop = oldScroll;
-    }
+    newContent.scrollTop = changed ? 0 : oldScroll;
+    if (noPad) fixIframe(newContent, hdr);
   }
   lastScreen = state.screen;
   if (state.dialog) renderDialog();
