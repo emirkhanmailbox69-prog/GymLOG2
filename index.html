@@ -1215,8 +1215,8 @@ const renderDialog = () => {
   let content = "";
   if (d.type === "confirm") {
     content = `<div class="dialog"><h3>${d.title}</h3><div style="margin-bottom:16px">${d.text}</div><div class="btn-row"><button class="btn-danger" onclick="dialogConfirm()">${d.ok}</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
-  } else if (d.type === "start") {
-    content = `<div class="dialog"><h3>Начать тренировку</h3><div style="margin-bottom:16px">Выбери вариант:</div><div class="btn-row"><button class="btn-primary" onclick="state.dialog=null;enterEditor([],-1)">Чистый шаблон</button><button onclick="state.dialog={type:'copy'};render()">Из истории</button></div></div>`;
+   } else if (d.type === "start") {
+    content = `<div class="dialog"><h3>Начать тренировку</h3><div style="margin-bottom:16px">Выбери вариант:</div><div class="btn-row"><button class="btn-primary" onclick="window.startCleanWorkout()">Чистый шаблон</button><button onclick="window.showHistoryCopyDialog()">Из истории</button></div></div>`;                                                                                                                                        
   } else if (d.type === "copy") {
     content = `<div class="dialog"><h3>Выбери тренировку</h3><div style="max-height:300px;overflow-y:auto;margin-bottom:12px">${state.history.length === 0 ? '<div class="empty">История пуста</div>' : state.history.map((sw, i) => `<div class="card" onclick="pickFromHistory(${i})"><div style="font-size:14px">${fmtDateTime(sw.start)}</div><div class="meta">${setsOf(sw)} подходов · ${sw.exercises.length} упр.</div></div>`).join("")}</div><button onclick="dialogCancel()">Отмена</button></div>`;
   } else if (d.type === "draftName" || d.type === "renameDraft") {
@@ -1312,6 +1312,9 @@ const render = () => {
 if (state.timerMode === "COUNTDOWN") state.timerAnchorMs = state.presetSeconds * 1000;
 render();
 cloudStart();
+// Фикс для inline-кнопок диалога "Новая тренировка"
+window.startCleanWorkout = () => { state.dialog = null; enterEditor([], -1); };
+window.showHistoryCopyDialog = () => { state.dialog = { type: 'copy' }; render(); };
 </script>
 <script src="./bg.js"></script>
 </body>
