@@ -41,8 +41,6 @@ document.getElementById('dline').textContent = D.toLocaleDateString('ru-RU',{wee
 const pad = n => String(n).padStart(2,'0');
 const MM = pad(D.getMonth()+1), DD = pad(D.getDate());
 const MGEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const WMO = {0:'ясно, небо чистое',1:'в основном ясно',2:'переменная облачность',3:'пасмурно',45:'туман',48:'изморозь',51:'лёгкая морось',53:'морось',55:'сильная морось',61:'небольшой дождь',63:'дождь',65:'сильный дождь',71:'небольшой снег',73:'снег',75:'сильный снег',80:'ливни',81:'ливни',82:'сильные ливни',95:'гроза',96:'гроза с градом',99:'гроза с градом'};
-const wemo = c => c<=1?'☀️':c<=2?'⛅':c<=3?'☁️':c<=48?'🌫':c<=57?'🌦':c<=67?'🌧':c<=77?'❄️':c<=82?'🌧':c<=99?'⛈':'';
 const QUOTES = [
  'Император защищает тех, кто защищает себя железом.',
  'Боль — это пошлина прогрессу. Плати её полностью.',
@@ -50,6 +48,25 @@ const QUOTES = [
  'Отдых — тоже служба. Вымотанный солдат есть мёртвый солдат.',
  'Бросай штангу громко: пусть рекруты знают, что старик ещё в строю.'
 ];
+
+// === open-meteo (основной) ===
+const WMO = {0:'ясно, небо чистое',1:'в основном ясно',2:'переменная облачность',3:'пасмурно',45:'туман',48:'изморозь',51:'лёгкая морось',53:'морось',55:'сильная морось',61:'небольшой дождь',63:'дождь',65:'сильный дождь',71:'небольшой снег',73:'снег',75:'сильный снег',80:'ливни',81:'ливни',82:'сильные ливни',95:'гроза',96:'гроза с градом',99:'гроза с градом'};
+const wemo = c => c<=1?'☀️':c<=2?'⛅':c<=3?'☁️':c<=48?'🌫':c<=57?'🌦':c<=67?'🌧':c<=77?'❄️':c<=82?'🌧':c<=99?'⛈':'';
+
+// === met.no (запасной) ===
+const MET_DESC = {
+  clearsky:'ясно, небо чистое', fair:'малооблачно', partlycloudy:'переменная облачность', cloudy:'пасмурно',
+  fog:'туман', lightrain:'небольшой дождь', rain:'дождь', heavyrain:'сильный дождь',
+  lightrainshowers:'небольшой дождь порывами', rainshowers:'дождь порывами', heavyrainshowers:'сильный дождь порывами',
+  lightsleet:'небольшой мокрый снег', sleet:'мокрый снег', heavysleet:'сильный мокрый снег',
+  lightsnow:'небольшой снег', snow:'снег', heavysnow:'сильный снег', snowshowers:'снег порывами',
+  lightrainandthunder:'небольшой дождь с грозой', rainandthunder:'дождь с грозой', heavyrainandthunder:'сильный дождь с грозой',
+  lightrainshowersandthunder:'ливни с грозой', rainshowersandthunder:'ливни с грозой', heavyrainshowersandthunder:'сильные ливни с грозой',
+  lightsleetandthunder:'мокрый снег с грозой', sleetandthunder:'мокрый снег с грозой', heavysleetandthunder:'мокрый снег с грозой',
+  lightsnowandthunder:'снег с грозой', snowandthunder:'снег с грозой', heavysnowandthunder:'снег с грозой',
+  snowshowersandthunder:'снег порывами с грозой'
+};
+const MET_EMO = c => /thunder/.test(c)?'⛈':/sleet|snow/.test(c)?'❄️':/rain/.test(c)?(/heavy/.test(c)?'🌧':''):c==='fog'?'':c==='cloudy'?'☁️':c==='partlycloudy'?'⛅':c==='fair'?'🌤':'️';
 
 document.getElementById('feed').innerHTML =
   '<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">🌦 Смотрю погоду…</div></div>' +
@@ -64,15 +81,35 @@ function fetchJson(url, ms){
 }
 function setCard(id, html){ const el = document.getElementById(id); if(el) el.outerHTML = html; }
 
+async function openMeteo(){
+  const j = await fetchJson('https://api.open-meteo.com/v1/forecast?latitude=59.93&longitude=30.33&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FMoscow&forecast_days=1');
+  const c = j.current, d = j.daily;
+  return `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(c.temperature_2m)}°</div><div class="wsub">${wemo(c.weather_code)} ${WMO[c.weather_code]||'погода'}<br>ощущается как ${Math.round(c.apparent_temperature)}°, ветер ${Math.round(c.wind_speed_10m)} м/с</div></div><div class="wsub" style="margin-top:8px">днём ${Math.round(d.temperature_2m_max[0])}° / ночью ${Math.round(d.temperature_2m_min[0])}°, шанс осадков ${d.precipitation_probability_max[0]}%</div></div>`;
+}
+
+async function metNo(){
+  const j = await fetchJson('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=59.93&lon=30.33');
+  const ts = j.properties && j.properties.timeseries;
+  if(!ts || !ts.length) throw new Error('пустой ответ');
+  const now = ts[0].data.instant.details;
+  const symRaw = (ts[0].data.next_1_hours && ts[0].data.next_1_hours.summary.symbol_code) ||
+                 (ts[0].data.next_6_hours && ts[0].data.next_6_hours.summary.symbol_code) || 'cloudy';
+  const base = symRaw.replace(/_(day|night|polartwilight)$/,'');
+  const temps = ts.slice(0,24).map(t => t.data.instant.details.air_temperature);
+  const mx = Math.max(...temps), mn = Math.min(...temps);
+  let prob = 0;
+  ts.slice(0,4).forEach(t => { const p = t.data.next_6_hours && t.data.next_6_hours.details && t.data.next_6_hours.details.precipitation_probability; if(p != null) prob = Math.max(prob, p); });
+  const t = now.air_temperature, w = now.wind_speed;
+  let feel = t;
+  if(t <= 10 && w >= 1.5){ const v = w * 3.6; feel = 13.12 + 0.6215*t - 11.37*Math.pow(v,0.16) + 0.396*t*Math.pow(v,0.16); }
+  return `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(t)}°</div><div class="wsub">${MET_EMO(base)} ${MET_DESC[base]||'погода'}<br>ощущается как ${Math.round(feel)}°, ветер ${Math.round(w)} м/с</div></div><div class="wsub" style="margin-top:8px">ближайшие сутки: днём ${Math.round(mx)}° / ночью ${Math.round(mn)}°, шанс осадков ${prob}%</div><div class="err" style="margin-top:6px">источник: met.no (запасной)</div></div>`;
+}
+
 async function loadWeather(){
   setCard('c-weather', '<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">🌦 Смотрю погоду…</div></div>');
-  try{
-    const j = await fetchJson('https://api.open-meteo.com/v1/forecast?latitude=59.93&longitude=30.33&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FMoscow&forecast_days=1');
-    const c = j.current, d = j.daily;
-    setCard('c-weather', `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(c.temperature_2m)}°</div><div class="wsub">${wemo(c.weather_code)} ${WMO[c.weather_code]||'погода'}<br>ощущается как ${Math.round(c.apparent_temperature)}°, ветер ${Math.round(c.wind_speed_10m)} м/с</div></div><div class="wsub" style="margin-top:8px">днём ${Math.round(d.temperature_2m_max[0])}° / ночью ${Math.round(d.temperature_2m_min[0])}°, шанс осадков ${d.precipitation_probability_max[0]}%</div></div>`);
-  }catch(e){
-    setCard('c-weather', `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">Погода не отвечает (${e.message}).</div><button class="retry" onclick="loadWeather()">Повторить</button></div>`);
-  }
+  try { setCard('c-weather', await openMeteo()); return; } catch(e){}
+  try { setCard('c-weather', await metNo()); return; } catch(e){}
+  setCard('c-weather', `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">Оба источника погоды молчат: и open-meteo, и met.no. Такое бывает раз в год, и сегодня тот день.</div><button class="retry" onclick="loadWeather()">Повторить</button></div>`);
 }
 
 async function loadHistory(){
