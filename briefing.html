@@ -7,23 +7,26 @@
 <title>Утренний брифинг</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{color-scheme:dark}
 html,body{background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
 body{padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 .h1row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
 h1{font-size:26px;font-weight:800}
-.refresh{width:auto;padding:8px 14px;font-size:18px;background:#1f2a44;color:#a8b8ff;border:none;border-radius:10px;cursor:pointer}
+.refresh{width:auto;padding:8px 14px;font-size:18px;background:linear-gradient(180deg,#243050,#1a2340);color:#a8b8ff;border:1px solid rgba(168,184,255,.25);border-radius:10px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.4);transition:transform .08s,box-shadow .15s}
+.refresh:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 3px rgba(0,0,0,.4)}
 .date{color:#888;font-size:13px;margin-bottom:16px}
-.card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px}
+.card{background:#161616;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 .card h3{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px}
 .wrow{display:flex;align-items:center;gap:14px}
-.wtemp{font-size:44px;font-weight:800;color:#4a6bff}
+.wtemp{font-size:44px;font-weight:800;color:#4a6bff;text-shadow:0 0 18px rgba(74,107,255,.45)}
 .wsub{color:#bbb;font-size:14px;line-height:1.5}
 .ev{padding:8px 0;border-bottom:1px solid #1f1f1f;font-size:15px}
 .ev:last-child{border-bottom:none}
 .ev b{color:#d4af37}
 .quote{font-style:italic;color:#c9b57f}
 .err{color:#888;font-size:14px}
-.retry{margin-top:10px;background:#1f2a44;color:#a8b8ff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
+.retry{margin-top:10px;background:linear-gradient(180deg,#243050,#1a2340);color:#a8b8ff;border:1px solid rgba(168,184,255,.25);border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.4);transition:transform .08s,box-shadow .15s}
+.retry:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 3px rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
@@ -49,11 +52,9 @@ const QUOTES = [
  'Бросай штангу громко: пусть рекруты знают, что старик ещё в строю.'
 ];
 
-// === open-meteo (основной) ===
 const WMO = {0:'ясно, небо чистое',1:'в основном ясно',2:'переменная облачность',3:'пасмурно',45:'туман',48:'изморозь',51:'лёгкая морось',53:'морось',55:'сильная морось',61:'небольшой дождь',63:'дождь',65:'сильный дождь',71:'небольшой снег',73:'снег',75:'сильный снег',80:'ливни',81:'ливни',82:'сильные ливни',95:'гроза',96:'гроза с градом',99:'гроза с градом'};
 const wemo = c => c<=1?'☀️':c<=2?'⛅':c<=3?'☁️':c<=48?'🌫':c<=57?'🌦':c<=67?'🌧':c<=77?'❄️':c<=82?'🌧':c<=99?'⛈':'';
 
-// === met.no (запасной) ===
 const MET_DESC = {
   clearsky:'ясно, небо чистое', fair:'малооблачно', partlycloudy:'переменная облачность', cloudy:'пасмурно',
   fog:'туман', lightrain:'небольшой дождь', rain:'дождь', heavyrain:'сильный дождь',
@@ -66,7 +67,7 @@ const MET_DESC = {
   lightsnowandthunder:'снег с грозой', snowandthunder:'снег с грозой', heavysnowandthunder:'снег с грозой',
   snowshowersandthunder:'снег порывами с грозой'
 };
-const MET_EMO = c => /thunder/.test(c)?'⛈':/sleet|snow/.test(c)?'❄️':/rain/.test(c)?(/heavy/.test(c)?'🌧':''):c==='fog'?'':c==='cloudy'?'☁️':c==='partlycloudy'?'⛅':c==='fair'?'🌤':'️';
+const MET_EMO = c => /thunder/.test(c)?'⛈':/sleet|snow/.test(c)?'❄️':/rain/.test(c)?(/heavy/.test(c)?'🌧':''):c==='fog'?'🌫':c==='cloudy'?'☁️':c==='partlycloudy'?'⛅':c==='fair'?'🌤':'☀️';
 
 document.getElementById('feed').innerHTML =
   '<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">🌦 Смотрю погоду…</div></div>' +
