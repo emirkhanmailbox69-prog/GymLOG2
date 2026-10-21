@@ -9,7 +9,9 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
 body{padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-h1{font-size:26px;font-weight:800;margin-bottom:2px}
+.h1row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+h1{font-size:26px;font-weight:800}
+.refresh{width:auto;padding:8px 14px;font-size:18px;background:#1f2a44;color:#a8b8ff;border:none;border-radius:10px;cursor:pointer}
 .date{color:#888;font-size:13px;margin-bottom:16px}
 .card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px}
 .card h3{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px}
@@ -25,10 +27,15 @@ h1{font-size:26px;font-weight:800;margin-bottom:2px}
 </style>
 </head>
 <body>
-<h1>📰 Утренний брифинг</h1>
+<div class="h1row"><h1>📰 Утренний брифинг</h1><button class="refresh" onclick="location.reload()">⟳</button></div>
 <div class="date" id="dline"></div>
-<div id="feed"><div class="card"><div class="err">Собираю сводку…</div></div></div>
+<div id="feed"></div>
 <script>
+window.onerror = function(msg, src, line){
+  const f = document.getElementById('feed');
+  if(f) f.innerHTML = '<div class="card"><h3>Сбой в коде</h3><div class="err">' + msg + ' (строка ' + line + ')</div><button class="retry" onclick="location.reload()">Обновить</button></div>';
+};
+
 const D = new Date();
 document.getElementById('dline').textContent = D.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 const pad = n => String(n).padStart(2,'0');
@@ -44,33 +51,46 @@ const QUOTES = [
  'Бросай штангу громко: пусть рекруты знают, что старик ещё в строю.'
 ];
 
-async function tryJson(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
+document.getElementById('feed').innerHTML =
+  '<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">🌦 Смотрю погоду…</div></div>' +
+  '<div class="card" id="c-hist"><h3>В этот день в истории</h3><div class="err">📜 Листаю архивы…</div></div>' +
+  '<div class="card"><h3>Мысль дня</h3><div class="quote">«' + QUOTES[(D.getDate()+D.getMonth())%QUOTES.length] + '»</div></div>';
+
+function fetchJson(url, ms){
+  return Promise.race([
+    fetch(url).then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('таймаут')), ms || 7000))
+  ]);
+}
+function setCard(id, html){ const el = document.getElementById(id); if(el) el.outerHTML = html; }
+
+async function loadWeather(){
+  setCard('c-weather', '<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">🌦 Смотрю погоду…</div></div>');
+  try{
+    const j = await fetchJson('https://api.open-meteo.com/v1/forecast?latitude=59.93&longitude=30.33&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FMoscow&forecast_days=1');
+    const c = j.current, d = j.daily;
+    setCard('c-weather', `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(c.temperature_2m)}°</div><div class="wsub">${wemo(c.weather_code)} ${WMO[c.weather_code]||'погода'}<br>ощущается как ${Math.round(c.apparent_temperature)}°, ветер ${Math.round(c.wind_speed_10m)} м/с</div></div><div class="wsub" style="margin-top:8px">днём ${Math.round(d.temperature_2m_max[0])}° / ночью ${Math.round(d.temperature_2m_min[0])}°, шанс осадков ${d.precipitation_probability_max[0]}%</div></div>`);
+  }catch(e){
+    setCard('c-weather', `<div class="card" id="c-weather"><h3>Питер сейчас</h3><div class="err">Погода не отвечает (${e.message}).</div><button class="retry" onclick="loadWeather()">Повторить</button></div>`);
+  }
 }
 
-function evCard(evs, note){
-  return `<div class="card"><h3>В этот день в истории${note?' · '+note:''}</h3>${evs.map(e=>`<div class="ev"><b>${e[0]}</b> — ${e[1]}</div>`).join('')}</div>`;
-}
-
-async function hist(){
-  // Уровень 1: REST API ru, подборка
+async function loadHistory(){
+  setCard('c-hist', '<div class="card" id="c-hist"><h3>В этот день в истории</h3><div class="err">📜 Листаю архивы…</div></div>');
+  const show = (evs, note) => setCard('c-hist', `<div class="card" id="c-hist"><h3>В этот день в истории${note?' · '+note:''}</h3>${evs.map(e=>`<div class="ev"><b>${e[0]}</b> — ${e[1]}</div>`).join('')}</div>`);
   try{
-    const j = await tryJson(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
+    const j = await fetchJson(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
     const evs = (j.events||[]).slice(0,5);
-    if(evs.length) return evCard(evs.map(e=>[e.year, e.text]));
+    if(evs.length){ show(evs.map(e=>[e.year,e.text])); return; }
   }catch(e){}
-  // Уровень 2: REST API ru, полный список
   try{
-    const j = await tryJson(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/all/${MM}/${DD}`);
+    const j = await fetchJson(`https://ru.wikipedia.org/api/rest_v1/feed/onthisday/all/${MM}/${DD}`);
     const evs = (j.events||[]).slice(0,5);
-    if(evs.length) return evCard(evs.map(e=>[e.year, e.text]));
+    if(evs.length){ show(evs.map(e=>[e.year,e.text])); return; }
   }catch(e){}
-  // Уровень 3: страница даты на ru.wikipedia («19 октября»), раздел «События»
   try{
     const page = encodeURIComponent(D.getDate() + ' ' + MGEN[D.getMonth()]);
-    const j = await tryJson(`https://ru.wikipedia.org/w/api.php?action=parse&page=${page}&prop=text&format=json&formatversion=2&origin=*`);
+    const j = await fetchJson(`https://ru.wikipedia.org/w/api.php?action=parse&page=${page}&prop=text&format=json&formatversion=2&origin=*`);
     const doc = new DOMParser().parseFromString(j.parse.text, 'text/html');
     const h2 = [...doc.querySelectorAll('h2')].find(x => /События/i.test(x.textContent));
     let ul = h2 ? h2.nextElementSibling : null;
@@ -81,36 +101,21 @@ async function hist(){
         const m = t.match(/^([0-9]+)\s*[—-]\s*(.*)$/);
         return m ? [m[1], m[2]] : ['…', t];
       });
-      if(evs.length) return evCard(evs);
+      if(evs.length){ show(evs); return; }
     }
   }catch(e){}
-  // Уровень 4: англоязычная Википедия
   try{
-    const j = await tryJson(`https://en.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
+    const j = await fetchJson(`https://en.wikipedia.org/api/rest_v1/feed/onthisday/selected/${MM}/${DD}`);
     const evs = (j.events||[]).slice(0,5);
-    if(evs.length) return evCard(evs.map(e=>[e.year, e.text]), 'оригинал на английском');
+    if(evs.length){ show(evs.map(e=>[e.year,e.text]), 'оригинал на английском'); return; }
   }catch(e){}
-  return `<div class="card"><h3>В этот день в истории</h3><div class="err">Архивы не отвечают: то ли интернет капризничает, то ли Википедия решила, что сегодня история не нужна.</div><button class="retry" onclick="location.reload()">Обновить</button></div>`;
+  setCard('c-hist', `<div class="card" id="c-hist"><h3>В этот день в истории</h3><div class="err">Архивы молчат на всех четырёх уровнях подхода.</div><button class="retry" onclick="loadHistory()">Повторить</button></div>`);
 }
 
-async function weather(){
-  try{
-    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=59.93&longitude=30.33&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FMoscow&forecast_days=1');
-    const j = await r.json();
-    const c = j.current, d = j.daily;
-    return `<div class="card"><h3>Питер сейчас</h3><div class="wrow"><div class="wtemp">${Math.round(c.temperature_2m)}°</div><div class="wsub">${wemo(c.weather_code)} ${WMO[c.weather_code]||'погода'}<br>ощущается как ${Math.round(c.apparent_temperature)}°, ветер ${Math.round(c.wind_speed_10m)} м/с</div></div><div class="wsub" style="margin-top:8px">днём ${Math.round(d.temperature_2m_max[0])}° / ночью ${Math.round(d.temperature_2m_min[0])}°, шанс осадков ${d.precipitation_probability_max[0]}%</div></div>`;
-  }catch(e){ return `<div class="card"><h3>Питер сейчас</h3><div class="err">Погода не отвечает. Выгляни в окно — надёжнее.</div></div>`; }
-}
-
-function quote(){
-  return `<div class="card"><h3>Мысль дня</h3><div class="quote">«${QUOTES[(D.getDate()+D.getMonth())%QUOTES.length]}»</div></div>`;
-}
-
-(async()=>{
-  const w = await weather();
-  const h = await hist();
-  document.getElementById('feed').innerHTML = w + h + quote();
-})();
+window.loadWeather = loadWeather;
+window.loadHistory = loadHistory;
+loadWeather();
+loadHistory();
 </script>
 </body>
 </html>
