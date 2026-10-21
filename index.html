@@ -1034,10 +1034,10 @@ const exerciseCard = (ex, ei, withNote) => `
 const renderWorkout = () => {
   if (state.editorMode) {
     return `
+      <button class="btn-primary" style="height:72px;font-size:22px;margin-bottom:16px" onclick="startFromEditor()">▶ Начать тренировку</button>
       ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, false)).join("")}
       <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
       <button class="btn-secondary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="saveDraftAction()">💾 Сохранить черновик</button>
-      <button class="btn-primary" style="height:72px;font-size:22px" onclick="startFromEditor()">▶ Начать тренировку</button>
     `;
   }
   return `
