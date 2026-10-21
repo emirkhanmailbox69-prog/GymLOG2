@@ -11,87 +11,110 @@
 <link rel="apple-touch-icon" href="./icon-app.png">
 <link rel="icon" type="image/png" href="./icon-app.png">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 <title>GymLog</title>
 <style>
+:root{--disp:'Russo One',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{color-scheme:dark}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4}
-input,textarea{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:12px;color:#e8e8e8;font-size:16px;font-family:inherit}
-input:focus,textarea:focus{outline:none;border-color:#4a6bff;box-shadow:0 0 0 2px rgba(74,107,255,.25)}
-#app{max-width:600px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column}
-.app-header{flex:0 0 auto;padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:rgba(10,10,10,.75);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06);z-index:5}
-.app-content{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
-.no-pad{padding:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
-@keyframes slideInRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
-.app-content > :not(.app-header){animation:slideInRight .32s ease}
-h1{font-size:32px;font-weight:700}
-h2{font-size:24px;font-weight:600;letter-spacing:.5px}
-h3{font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:.3px}
+#app{max-width:600px;margin:0 auto;height:100vh;height:100dvh;position:relative}
+.app-header{position:absolute;top:0;left:0;right:0;z-index:6;padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:rgba(10,10,10,.68);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,.08)}
+.app-content{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+.no-pad{padding-left:8px;padding-right:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.app-content.anim-fwd{animation:scrFwd .32s cubic-bezier(.22,1,.36,1)}
+.app-content.anim-back{animation:scrBack .32s cubic-bezier(.22,1,.36,1)}
+@keyframes scrFwd{from{opacity:0;transform:translateX(56px)}to{opacity:1;transform:none}}
+@keyframes scrBack{from{opacity:0;transform:translateX(-56px)}to{opacity:1;transform:none}}
+h1{font-size:32px;font-weight:400;font-family:var(--disp)}
+h2{font-size:24px;font-weight:400;font-family:var(--disp)}
+h3{font-size:18px;font-weight:600;margin-bottom:8px}
 .date{color:#888;font-size:14px}
-button{position:relative;overflow:hidden;background:linear-gradient(180deg,#313131,#242424);color:#e8e8e8;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:16px;font-size:17px;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:background .15s,transform .08s,box-shadow .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.45)}
-button:active{background:#3a3a3a;transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 3px rgba(0,0,0,.4)}
-.btn-primary{background:linear-gradient(180deg,#5d7dff,#4062f2);color:#fff;border-color:rgba(255,255,255,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 14px rgba(74,107,255,.28)}
-.btn-primary:active{background:linear-gradient(180deg,#4a6bff,#3a5bef);transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 6px rgba(74,107,255,.25)}
-.btn-secondary{background:linear-gradient(180deg,#243050,#1a2340);color:#a8b8ff;border-color:rgba(168,184,255,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.4)}
-.btn-danger{background:linear-gradient(180deg,#462222,#331a1a);color:#ff8a8a;border-color:rgba(255,138,138,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 8px rgba(0,0,0,.4)}
+button{background:#2a2a2a;color:#e8e8e8;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:background .18s;position:relative;overflow:hidden}
+button:active{background:#3a3a3a}
+.btn-primary{background:#4a6bff;color:#fff;font-family:var(--disp);font-weight:400;letter-spacing:.5px}
+.btn-primary:active{background:#3a5bef}
+.btn-secondary{background:#1f2a44;color:#a8b8ff;font-family:var(--disp);font-weight:400;letter-spacing:.5px}
+.btn-danger{background:#3a1f1f;color:#ff8a8a}
 .btn-row{display:flex;gap:8px}
 .btn-row button{flex:1}
 .btn-small{padding:8px 12px;font-size:14px;width:auto}
-.card{background:rgba(22,22,22,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rip .55s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(3);opacity:0}}
+.card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer}
 .card h3{margin-bottom:4px}
 .card .meta{color:#888;font-size:13px;margin-bottom:8px}
 .row{display:flex;align-items:center;gap:8px}
 .row.between{justify-content:space-between}
 .sets{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.set{width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,#232323,#1b1b1b);border:2px solid #2e2e2e;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666;cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:all .2s}
-.set.done{background:linear-gradient(180deg,#2f522f,#254225);border-color:#4a8a4a;color:#8aff8a;box-shadow:0 0 10px rgba(74,138,74,.35),inset 0 1px 0 rgba(255,255,255,.10)}
+.set{width:44px;height:44px;border-radius:10px;background:#1f1f1f;border:2px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666;cursor:pointer;font-weight:600;transition:background .25s,border-color .25s,color .25s}
+.set.done{background:#2a4a2a;border-color:#4a8a4a;color:#8aff8a;animation:setpop .28s cubic-bezier(.34,1.56,.64,1)}
+@keyframes setpop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
 .line-row{padding:8px 0;border-bottom:1px solid #1f1f1f}
 .line-row:last-child{border-bottom:none}
-.timer-display{font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px}
+.timer-display{font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px;font-family:var(--disp)}
 .timer-mode{color:#888;font-size:13px;margin-top:4px}
-.dialog-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
-.dialog{background:rgba(26,26,26,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+#timer-btn.running{animation:glowPulse 1.5s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,107,255,0)}50%{box-shadow:0 0 22px 2px rgba(74,107,255,.55)}}
+.dialog-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px);animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:0}}
+.dialog{background:#1a1a1a;border-radius:16px;padding:20px;width:100%;max-width:400px;border:1px solid #333;animation:dlgIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes dlgIn{from{opacity:0;transform:scale(.92) translateY(12px)}}
 .dialog h3{margin-bottom:12px}
-.dialog input,.dialog textarea{width:100%;margin-bottom:12px}
+.dialog input,.dialog textarea{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:12px;color:#e8e8e8;font-size:16px;margin-bottom:12px;font-family:inherit}
+.dialog input:focus,.dialog textarea:focus{outline:none;border-color:#4a6bff}
 .dialog textarea{min-height:80px;resize:vertical}
 .dialog .btn-row{margin-top:8px}
-.back{background:transparent;color:#a8b8ff;padding:8px 0;margin-bottom:6px;width:auto;text-align:left;font-size:16px;border:none;box-shadow:none}
+.back{background:transparent;color:#a8b8ff;padding:8px 0;margin-bottom:6px;width:auto;text-align:left;font-size:16px;overflow:visible}
+.back:active{background:transparent}
 .empty{color:#666;text-align:center;padding:24px 0;font-size:15px}
-.chip{display:inline-block;background:linear-gradient(180deg,#313131,#242424);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:8px 14px;font-size:14px;margin-right:8px;margin-bottom:8px;cursor:pointer}
-.chip.active{background:linear-gradient(180deg,#5d7dff,#4062f2);border-color:rgba(255,255,255,.28);color:#fff}
+.chip{display:inline-block;background:#1f1f1f;border-radius:20px;padding:8px 14px;font-size:14px;margin-right:8px;margin-bottom:8px;cursor:pointer;border:1px solid #2a2a2a}
+.chip.active{background:#4a6bff;border-color:#4a6bff;color:#fff}
 canvas{width:100%;height:240px;display:block}
 .stat-big{font-size:20px;font-weight:600;margin-top:8px}
 .stat-small{color:#888;font-size:14px}
-.icon-btn{background:transparent;width:auto;padding:4px 8px;font-size:14px;color:#a8b8ff;border:none;box-shadow:none}
+.icon-btn{background:transparent;width:auto;padding:4px 8px;font-size:14px;color:#a8b8ff;overflow:visible}
+.icon-btn:active{background:transparent}
 .radio-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.radio{padding:10px 16px;background:linear-gradient(180deg,#313131,#242424);border:1px solid rgba(255,255,255,.14);border-radius:10px;cursor:pointer;font-size:15px}
-.radio.active{background:linear-gradient(180deg,#5d7dff,#4062f2);border-color:rgba(255,255,255,.28);color:#fff}
+.radio{padding:10px 16px;background:#1f1f1f;border-radius:10px;cursor:pointer;border:1px solid #2a2a2a;font-size:15px}
+.radio.active{background:#4a6bff;border-color:#4a6bff;color:#fff}
 .switch-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
-.switch{width:48px;height:28px;background:#2a2a2a;border:1px solid rgba(255,255,255,.14);border-radius:14px;position:relative;cursor:pointer;transition:background .2s}
-.switch.on{background:linear-gradient(180deg,#5d7dff,#4062f2);border-color:rgba(255,255,255,.28)}
-.switch::after{content:"";position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.5)}
-.switch.on::after{left:22px}
+.switch{width:48px;height:28px;background:#2a2a2a;border-radius:14px;position:relative;cursor:pointer;transition:background .2s}
+.switch.on{background:#4a6bff}
+.switch::after{content:"";position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
+.switch.on::after{left:23px}
 .medal{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;flex-shrink:0}
 .medal.earned{background:#1E1E1E;color:#fff}
 .medal.locked{background:#333;color:#777}
 .medal.bronze{border:3px solid #CD7F32}.medal.silver{border:3px solid #C0C0C0}.medal.gold{border:3px solid #D4AF37}.medal.platinum{border:3px solid #E5E4E2}
-.praise{font-size:28px;font-weight:800;text-align:center;margin:8px 0;background:linear-gradient(135deg,#5d7dff,#a06bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.praise{font-size:28px;font-weight:400;font-family:var(--disp);color:#4a6bff;text-align:center;margin:8px 0}
 .footer{text-align:center;color:#555;font-size:12px;margin-top:32px}
 .home-header{display:flex;align-items:center;gap:14px}
-.home-header img{width:84px;height:84px;border-radius:20px;object-fit:cover;border:2px solid rgba(255,255,255,.14);background:#161616;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.5);animation:pulse 3.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
-.hh-title{font-size:30px;font-weight:800;letter-spacing:1px;line-height:1.1;background:linear-gradient(135deg,#5d7dff 0%,#a06bff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hh-date{color:#888;font-size:13px;margin-top:2px;letter-spacing:.5px;font-weight:300}
+.home-header img{width:84px;height:84px;border-radius:20px;object-fit:cover;border:2px solid #2a2a2a;background:#161616;flex-shrink:0;animation:breathe 4.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.hh-title{font-size:30px;font-weight:400;font-family:var(--disp);letter-spacing:1px;line-height:1.1}
+.hh-date{color:#888;font-size:13px;margin-top:2px}
 .muted{color:#888;font-size:12px;margin-top:8px}
-.toast{position:fixed;bottom:calc(40px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#5d7dff,#4062f2);color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid rgba(255,255,255,.28);box-shadow:0 4px 14px rgba(74,107,255,.28)}
+.toast{position:fixed;bottom:calc(40px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#4a6bff;color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
-.menu-icon{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.btn-row-home{display:flex;align-items:center;gap:12px}
-.btn-row-home span{flex:1}
-@keyframes timerPulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 14px rgba(74,107,255,.28)}50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 20px rgba(74,107,255,.55)}}
-.timer-running{animation:timerPulse 1.4s ease-in-out infinite}
-.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
-@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+.ach-sum .ach-bar{height:10px;background:#1f1f1f;border-radius:6px;overflow:hidden;margin-top:12px}
+.ach-bar i{display:block;height:100%;background:linear-gradient(90deg,#7a5c17,#d4af37);transition:width .6s cubic-bezier(.22,1,.36,1)}
+.ach-ring{width:52px;height:52px;border-radius:50%;border:3px solid #d4af37;display:flex;align-items:center;justify-content:center;font-weight:400;font-size:14px;color:#f0c75e;font-family:var(--disp);flex-shrink:0}
+.ach-sec{font-family:var(--disp);font-weight:400;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#888;margin:18px 0 10px}
+.ach{display:flex;gap:12px;align-items:center;cursor:default;border-left:4px solid transparent}
+.ach.r0{border-left-color:#CD7F32}.ach.r1{border-left-color:#C0C0C0}.ach.r2{border-left-color:#D4AF37}.ach.r3{border-left-color:#E5E4E2}
+.ach.got .medal{box-shadow:0 0 14px rgba(212,175,55,.35)}
+.ach.locked-c{opacity:.55}
+.ach .info{flex:1}
+.ach .nm{font-size:16px;font-weight:600}
+.ach .ds{color:#888;font-size:13px;margin-top:2px}
+.ach .mt{margin-top:8px}
+.rchip{display:inline-block;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid}
+.rchip.rc0{color:#CD7F32;border-color:#CD7F32}.rchip.rc1{color:#C0C0C0;border-color:#C0C0C0}.rchip.rc2{color:#D4AF37;border-color:#D4AF37}.rchip.rc3{color:#E5E4E2;border-color:#E5E4E2}
+.ach-prog{height:6px;background:#1f1f1f;border-radius:4px;overflow:hidden;margin-top:8px}
+.ach-prog i{display:block;height:100%;background:linear-gradient(90deg,#4a6bff,#8ab4ff)}
+.ach-prog-lbl{font-size:11px;color:#888;margin-top:4px}
 </style>
 </head>
 <body>
@@ -100,37 +123,8 @@ canvas{width:100%;height:240px;display:block}
 window.onerror = function(msg, src, line) {
   document.getElementById('app').innerHTML = '<div style="padding:24px;color:#ff8a8a;font-size:14px;font-family:monospace">JS сдох:<br>' + msg + '<br>строка ' + line + '</div>';
 };
-// === RIPPLE EFFECT ===
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('button, .chip, .radio, .set');
-  if (!btn || btn.classList.contains('icon-btn') || btn.classList.contains('back') || btn.closest('.dialog')) return;
-  const rect = btn.getBoundingClientRect();
-  const size = Math.max(rect.width, rect.height);
-  const ripple = document.createElement('span');
-  ripple.className = 'ripple';
-  ripple.style.width = ripple.style.height = size + 'px';
-  ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
-  ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
-  btn.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 600);
-});
 </script>
 <script>
-// === SVG ICONS ===
-const ICO = {
-  water: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
-  trophy: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
-  shield: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
-  gift: '<svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v14"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>',
-  news: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>',
-  chart: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
-  history: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>',
-  cog: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
-  play: '<svg class="menu-icon" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg>',
-  plus: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
-  drafts: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><polyline points="14 2 14 8 20 8"/></svg>',
-};
-
 const LS = {
   get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
@@ -336,6 +330,7 @@ const state = {
   flagNomusic: false
 };
 
+// Пересчёт достижений при каждом запуске на основе текущей истории
 {
   const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
   const freshEarned = new Set();
@@ -371,7 +366,7 @@ const updateTimerUI = () => {
   el.textContent = fmtSeconds(Math.floor(currentMs / 1000));
   if (btn) {
     btn.textContent = state.timerRunning ? "Пауза" : "Старт";
-    btn.classList.toggle('timer-running', state.timerRunning);
+    btn.classList.toggle('running', state.timerRunning);
   }
 };
 
@@ -438,9 +433,14 @@ const save = () => {
 
 window.exportData = () => {
   const data = {
-    history: state.history, drafts: state.drafts, exerciseBase: state.exerciseBase,
-    earnedAch: Array.from(state.earnedAch), bodyWeight: state.bodyWeightText,
-    timerMode: state.timerMode, autoStart: state.autoStart, presetSeconds: state.presetSeconds,
+    history: state.history,
+    drafts: state.drafts,
+    exerciseBase: state.exerciseBase,
+    earnedAch: Array.from(state.earnedAch),
+    bodyWeight: state.bodyWeightText,
+    timerMode: state.timerMode,
+    autoStart: state.autoStart,
+    presetSeconds: state.presetSeconds,
     exportDate: new Date().toISOString()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -752,7 +752,9 @@ window.copyDraftByIndex = (index) => {
 
 window.renameDraftByIndex = (index) => {
   state.dialog = {
-    type: "renameDraft", draftIndex: index, initial: state.drafts[index].name,
+    type: "renameDraft",
+    draftIndex: index,
+    initial: state.drafts[index].name,
     onConfirm: (name) => {
       state.drafts = state.drafts.map((d, i) => i === index ? { ...d, name: name } : d);
       save(); render();
@@ -819,6 +821,7 @@ function toast(msg) {
   t._to = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// === CLOUD BACKUP (GitHub Gist) ===
 const CLOUD = {
   token: () => localStorage.getItem('gymlog_cloud_token') || '',
   gistId: () => localStorage.getItem('gymlog_cloud_gist') || '',
@@ -906,6 +909,7 @@ window.cloudConnect = () => {
   CLOUD.backup(false).then(() => { cloudStart(); render(); }).catch(e => toast(e.message));
 };
 
+// === ШАПКА ===
 const headerFor = () => {
   if (state.screen === "HOME") {
     return `
@@ -933,39 +937,55 @@ const headerFor = () => {
   }
   if (state.screen === "WORKOUT" && state.editorMode) {
     const draft = state.drafts.find(d => d.id === state.sourceDraftId);
-    return `<button class="back" onclick="backAction()">← Меню</button>
-      <h2 style="margin:0 0 8px 0">${draft?.name || "Новая тренировка"}</h2>
-      <button class="btn-primary" style="height:72px;font-size:22px;margin-bottom:0" onclick="startFromEditor()">▶ Начать тренировку</button>`;
+    return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${draft?.name || "Новая тренировка"}</h2>`;
   }
   const titles = {
-    FUTURE: "Будущие тренировки", HISTORY: "История", STATS: "Статистика",
-    SETTINGS: "Настройки", BASE: `База упражнений (${state.exerciseBase.length})`,
-    ACHIEVEMENTS: `Ачивки ${state.earnedAch.size} / ${ACHIEVEMENTS.length}`,
-    SUMMARY: "Тренировка завершена", WATER: "Трекер воды", RPG: "Имперский гвардеец",
-    WRAPPED: "GymLog Wrapped", BRIEFING: "Утренний брифинг"
+    FUTURE: "Будущие тренировки",
+    HISTORY: "История",
+    STATS: "Статистика",
+    SETTINGS: "Настройки",
+    BASE: `База упражнений (${state.exerciseBase.length})`,
+    ACHIEVEMENTS: `Достижения ${state.earnedAch.size} / ${ACHIEVEMENTS.length}`,
+    SUMMARY: "Тренировка завершена",
+    WATER: "Трекер воды",
+    RPG: "GymHammer 40t",
+    WRAPPED: "GymLog Wrapped",
+    BRIEFING: "Утренний брифинг"
   };
   return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${titles[state.screen] || ""}</h2>`;
 };
 
+// === ЭКРАНЫ ===
 const renderHome = () => `
-  ${state.active ? `<button class="btn-secondary" style="height:80px;margin-bottom:16px" onclick="continueActive()"><div class="btn-row-home">${ICO.play}<span style="font-size:20px;font-weight:600">Продолжить тренировку</span></div><div style="font-size:12px;color:#888;margin-top:4px">идёт с ${fmtDateTime(state.active.start)}</div></button>` : ""}
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})"><div class="btn-row-home">${ICO.plus}<span>Новая тренировка</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='FUTURE';render()"><div class="btn-row-home">${ICO.drafts}<span>Будущие тренировки${state.drafts.length ? ` (${state.drafts.length})` : ""}</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='ACHIEVEMENTS';render()"><div class="btn-row-home">${ICO.trophy}<span>Ачивки (${state.earnedAch.size}/${ACHIEVEMENTS.length})</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='STATS';state.summaryReturn='HOME';render()"><div class="btn-row-home">${ICO.chart}<span>Статистика упражнений</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='HISTORY';state.summaryReturn='HOME';render()"><div class="btn-row-home">${ICO.history}<span>История тренировок</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WATER';render()"><div class="btn-row-home">${ICO.water}<span>Трекер воды</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='RPG';render()"><div class="btn-row-home">${ICO.shield}<span>Имперский гвардеец</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WRAPPED';render()"><div class="btn-row-home">${ICO.gift}<span>GymLog Wrapped</span></div></button>
-  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='BRIEFING';render()"><div class="btn-row-home">${ICO.news}<span>Утренний брифинг</span></div></button>
-  <button class="btn-primary" style="height:72px;font-size:22px" onclick="state.screen='SETTINGS';render()"><div class="btn-row-home">${ICO.cog}<span>Настройки</span></div></button>
+  ${state.active ? `<button class="btn-secondary" style="height:80px;margin-bottom:16px" onclick="continueActive()"><div style="font-size:20px;font-weight:600">▶ Продолжить тренировку</div><div style="font-size:12px;color:#888;margin-top:4px">идёт с ${fmtDateTime(state.active.start)}</div></button>` : ""}
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='BRIEFING';render()">📰 Утренний брифинг</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">Новая тренировка</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='FUTURE';render()">Будущие тренировки${state.drafts.length ? ` (${state.drafts.length})` : ""}</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='ACHIEVEMENTS';render()">🏆 Достижения (${state.earnedAch.size}/${ACHIEVEMENTS.length})</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='STATS';state.summaryReturn='HOME';render()">Статистика упражнений</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='HISTORY';state.summaryReturn='HOME';render()">История тренировок</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WATER';render()">💧 Трекер воды</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='RPG';render()">🦅 GymHammer 40t</button>
+  <button class="btn-primary" style="height:72px;margin-bottom:16px;font-size:22px" onclick="state.screen='WRAPPED';render()">🎉 GymLog Wrapped</button>
+  <button class="btn-primary" style="height:72px;font-size:22px" onclick="state.screen='SETTINGS';render()">Настройки</button>
   <div class="footer">Производство: Агафон Дристунцов © 2026</div>
 `;
 
-const renderWater = () => `<iframe src="./water.html?d=${Date.now()}" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>`;
-const renderRPG = () => `<iframe src="./rpg.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>`;
-const renderWrapped = () => `<iframe src="./wrapped.html?d=${Date.now()}" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>`;
-const renderBriefing = () => `<iframe src="./briefing.html?d=${Date.now()}" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>`;
+const renderWater = () => `
+  <iframe src="./water.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
+
+const renderRPG = () => `
+  <iframe src="./rpg.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
+
+const renderWrapped = () => `
+  <iframe src="./wrapped.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
+
+const renderBriefing = () => `
+  <iframe src="./briefing.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
+`;
 
 const renderFuture = () => `
   <button class="btn-primary" style="height:64px;margin-bottom:16px;font-size:18px" onclick="requireNoActive(()=>{state.dialog={type:'start'};render()})">+ Новая</button>
@@ -1015,6 +1035,7 @@ const renderWorkout = () => {
       ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, false)).join("")}
       <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
       <button class="btn-secondary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="saveDraftAction()">💾 Сохранить черновик</button>
+      <button class="btn-primary" style="height:72px;font-size:22px" onclick="startFromEditor()">▶ Начать тренировку</button>
     `;
   }
   return `
@@ -1046,18 +1067,46 @@ const renderHistory = () => `
 
 const renderAchievements = () => {
   const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
-  return ACHIEVEMENTS.map(d => {
-    const got = state.earnedAch.has(d.id);
-    const hiddenLocked = d.hidden && !got;
-    const rClass = got ? (d.rarity===0?'bronze':d.rarity===1?'silver':d.rarity===2?'gold':'platinum') : '';
-    let progressHtml = '';
-    if (!got && d.progress && !hiddenLocked) {
+  const got = state.earnedAch.size;
+  const pct = Math.round(got / ACHIEVEMENTS.length * 100);
+  const card = (d) => {
+    const has = state.earnedAch.has(d.id);
+    const hiddenLocked = d.hidden && !has;
+    const rClass = d.rarity===0?'bronze':d.rarity===1?'silver':d.rarity===2?'gold':'platinum';
+    let prog = '';
+    if (!has && d.progress && !hiddenLocked) {
       const [cur, target] = d.progress(state.history, bw);
       const frac = target > 0 ? Math.max(0.02, Math.min(1, cur/target)) : 0.02;
-      progressHtml = `<div style="margin-top:6px"><div style="background:#444;height:8px;border-radius:4px;overflow:hidden"><div style="background:linear-gradient(90deg,#D4AF37,#f0c75e);height:100%;width:${frac*100}%;transition:width .5s"></div></div><div style="font-size:12px;color:#999;margin-top:4px">${cur} / ${target}</div></div>`;
+      prog = `<div class="ach-prog"><i style="width:${(frac*100).toFixed(0)}%"></i></div><div class="ach-prog-lbl">${cur} / ${target}</div>`;
     }
-    return `<div class="card" style="cursor:default"><div class="row"><div class="medal ${got?'earned '+rClass:'locked'}">${got ? d.icon : "?"}</div><div style="flex:1;margin-left:12px"><h3 style="color:${got?'#e8e8e8':'#999'}">${hiddenLocked ? "???" : d.name}</h3><div class="meta">${hiddenLocked ? "Скрытая ачивка" : d.desc}</div>${got ? `<div class="meta" style="color:#D4AF37">${rarityName(d.rarity)} · получено</div>` : ""}${progressHtml}</div></div></div>`;
-  }).join("");
+    return `
+      <div class="card ach r${d.rarity} ${has?'got':'locked-c'}">
+        <div class="medal ${has?'earned '+rClass:'locked'}">${has ? d.icon : (hiddenLocked ? '?' : d.icon)}</div>
+        <div class="info">
+          <div class="nm">${hiddenLocked ? '???' : d.name}</div>
+          <div class="ds">${hiddenLocked ? 'Скрытое достижение. Подсказка: живи интересно.' : d.desc}</div>
+          <div class="mt"><span class="rchip rc${d.rarity}">${rarityName(d.rarity)}</span>${has ? '<span class="rchip rc'+d.rarity+'">получено</span>' : ''}</div>
+          ${prog}
+        </div>
+      </div>`;
+  };
+  const secs = [0,1,2,3].map(r => {
+    const list = ACHIEVEMENTS.filter(a => a.rarity === r);
+    return `<div class="ach-sec">${['Бронзовый ярус','Серебряный ярус','Золотой ярус','Платиновый ярус'][r]}</div>` + list.map(card).join('');
+  }).join('');
+  return `
+    <div class="card ach-sum" style="cursor:default">
+      <div class="row between">
+        <div>
+          <h3 style="margin:0">Наградной лист</h3>
+          <div class="meta" style="margin:4px 0 0">Получено ${got} из ${ACHIEVEMENTS.length}</div>
+        </div>
+        <div class="ach-ring">${pct}%</div>
+      </div>
+      <div class="ach-bar"><i style="width:${pct}%"></i></div>
+    </div>
+    ${secs}
+  `;
 };
 
 const renderStats = () => {
@@ -1095,27 +1144,15 @@ const drawChart = () => {
   const minX = dataPoints[0][0], maxX = dataPoints[dataPoints.length-1][0];
   const minY = Math.min(...dataPoints.map(p => p[1])), maxY = Math.max(...dataPoints.map(p => p[1]));
   const rangeY = maxY === minY ? 10 : maxY - minY;
-  ctx.strokeStyle = "rgba(255,255,255,.1)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke();
-  const grad = ctx.createLinearGradient(0, pad, 0, h-pad);
-  grad.addColorStop(0, 'rgba(74,107,255,.4)'); grad.addColorStop(1, 'rgba(74,107,255,.02)');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  dataPoints.forEach((p, i) => {
-    const x = pad + ((p[0]-minX)/(maxX-minX||1)) * (w-2*pad);
-    const y = h - pad - ((p[1]-minY)/rangeY) * (h-2*pad);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.lineTo(pad + (w-2*pad), h-pad); ctx.lineTo(pad, h-pad); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "#5d7dff"; ctx.lineWidth = 2.5; ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(74,107,255,.6)';
-  ctx.beginPath();
+  ctx.strokeStyle = "#2a2a2a"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke();
+  ctx.strokeStyle = "#4a6bff"; ctx.lineWidth = 2; ctx.beginPath();
   dataPoints.forEach((p, i) => {
     const x = pad + ((p[0]-minX)/(maxX-minX||1)) * (w-2*pad);
     const y = h - pad - ((p[1]-minY)/rangeY) * (h-2*pad);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#5d7dff";
+  ctx.fillStyle = "#4a6bff";
   dataPoints.forEach(p => {
     const x = pad + ((p[0]-minX)/(maxX-minX||1)) * (w-2*pad);
     const y = h - pad - ((p[1]-minY)/rangeY) * (h-2*pad);
@@ -1128,7 +1165,7 @@ const renderSettings = () => {
   const backupTime = lastBackup ? new Date(+lastBackup).toLocaleString('ru-RU') : '—';
   const isConnected = !!CLOUD.token();
   return `
-  <div class="card" style="cursor:default"><h3>Мой вес, кг (для ачивок ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;save()" placeholder="Вес, кг" style="margin-top:8px"></div>
+  <div class="card" style="cursor:default"><h3>Мой вес, кг (для достижений ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;save()" placeholder="Вес, кг" style="margin-top:8px"></div>
   <div class="card" style="cursor:default"><button class="btn-secondary" style="height:64px;font-size:18px" onclick="state.screen='BASE';render()">📚 База упражнений</button></div>
   <div class="card" style="cursor:default"><h3>Резервная копия данных</h3><div style="margin-top:8px;display:flex;gap:8px"><button class="btn-small btn-primary" onclick="exportData()">Экспорт</button><label class="btn-small btn-secondary" style="cursor:pointer"><input type="file" accept=".json" onchange="importData(event)" style="display:none">Импорт</label></div><div class="muted">Экспорт сохраняет все данные в JSON-файл. Импорт восстанавливает из файла.</div></div>
   <div class="card" style="cursor:default">
@@ -1163,7 +1200,7 @@ const renderSummary = () => {
     <div class="date">${fmtDateTime(sw.start)}</div>
     <div class="date">Длительность: ${fmtDuration(sw.end - sw.start)}</div>
     ${sw.bulkan || sw.nomusic ? `<div class="date">${sw.bulkan?'🐱 Булкан был рядом  ':''}${sw.nomusic?'🔇 без музыки':''}</div>` : ''}
-    ${state.lastEarned.length > 0 ? `<div class="card" style="margin:16px 0;cursor:default"><h3>🏆 Получены ачивки:</h3>${state.lastEarned.map(a => `<div class="row" style="margin-top:8px"><div class="medal earned ${a.rarity===0?'bronze':a.rarity===1?'silver':a.rarity===2?'gold':'platinum'}" style="width:44px;height:44px;font-size:20px">${a.icon}</div><div style="margin-left:10px"><div style="font-size:16px">${a.name}</div><div style="font-size:12px;color:#D4AF37">${rarityName(a.rarity)}</div></div></div>`).join("")}</div>` : ""}
+    ${state.lastEarned.length > 0 ? `<div class="card" style="margin:16px 0;cursor:default"><h3>🏆 Получены достижения:</h3>${state.lastEarned.map(a => `<div class="row" style="margin-top:8px"><div class="medal earned ${a.rarity===0?'bronze':a.rarity===1?'silver':a.rarity===2?'gold':'platinum'}" style="width:44px;height:44px;font-size:20px">${a.icon}</div><div style="margin-left:10px"><div style="font-size:16px">${a.name}</div><div style="font-size:12px;color:#D4AF37">${rarityName(a.rarity)}</div></div></div>`).join("")}</div>` : ""}
     ${sw.exercises.map(ex => `<div class="card" style="cursor:default"><h3>${ex.name}</h3>${ex.lines.map(l => `<div style="margin-top:4px">${fmtWeight(l.weight)} кг × ${l.reps} — подходов: ${l.done}</div>${l.note ? `<div style="color:#888;font-size:13px;margin-left:8px;margin-top:2px">Заметка: ${l.note}</div>` : ""}`).join("")}</div>`).join("")}
     <div class="stat-big">Всего: ${setsOf(sw)} подходов, объём ${Math.round(volumeOf(sw))} кг</div>
     <button class="btn-primary" style="height:72px;margin-top:24px;font-size:22px" onclick="state.screen=state.summaryReturn;render()">ОК</button>
@@ -1212,21 +1249,48 @@ window.toggleExpand = (ei) => {
   render();
 };
 
+// === RIPPLE: белая волна от точки нажатия ===
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest ? e.target.closest('button') : null;
+  if (!b) return;
+  const r = b.getBoundingClientRect();
+  const d = Math.max(r.width, r.height);
+  const s = document.createElement('span');
+  s.className = 'ripple';
+  s.style.width = s.style.height = d + 'px';
+  s.style.left = (e.clientX - r.left - d/2) + 'px';
+  s.style.top = (e.clientY - r.top - d/2) + 'px';
+  b.appendChild(s);
+  setTimeout(() => s.remove(), 600);
+});
+
+const ORDER = {HOME:0,BRIEFING:1,FUTURE:2,WORKOUT:3,SUMMARY:4,HISTORY:5,STATS:6,ACHIEVEMENTS:7,WATER:8,RPG:9,WRAPPED:10,SETTINGS:11,BASE:12};
 const app = document.getElementById("app");
 let lastScreen = null;
 const render = () => {
   document.querySelectorAll('.dialog-bg').forEach(d => d.remove());
   const oldContent = document.querySelector('.app-content');
   const oldScroll = oldContent ? oldContent.scrollTop : 0;
-  const sameScreen = lastScreen === state.screen;
+  const changed = lastScreen !== state.screen && lastScreen !== null;
+  const dirBack = changed && (ORDER[state.screen] !== undefined ? ORDER[state.screen] : 99) < (ORDER[lastScreen] !== undefined ? ORDER[lastScreen] : 99);
   const contentFns = {
     HOME: renderHome, FUTURE: renderFuture, WORKOUT: renderWorkout, HISTORY: renderHistory,
     STATS: renderStats, SETTINGS: renderSettings, BASE: renderBase, ACHIEVEMENTS: renderAchievements,
     SUMMARY: renderSummary, WATER: renderWater, RPG: renderRPG, WRAPPED: renderWrapped, BRIEFING: renderBriefing
   };
-  app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${(state.screen==='WATER'||state.screen==='RPG'||state.screen==='WRAPPED'||state.screen==='BRIEFING')?' no-pad':''}">${contentFns[state.screen]()}</div>`;
+  const noPad = (state.screen==='WATER'||state.screen==='RPG'||state.screen==='WRAPPED'||state.screen==='BRIEFING');
+  app.innerHTML = `<div class="app-header">${headerFor()}</div><div class="app-content${noPad?' no-pad':''}">${contentFns[state.screen]()}</div>`;
   const newContent = document.querySelector('.app-content');
-  if (newContent) newContent.scrollTop = sameScreen ? oldScroll : 0;
+  const hdr = document.querySelector('.app-header');
+  if (newContent) {
+    if (hdr) newContent.style.paddingTop = (hdr.offsetHeight + 10) + 'px';
+    if (changed) {
+      newContent.classList.add(dirBack ? 'anim-back' : 'anim-fwd');
+      newContent.scrollTop = 0;
+    } else {
+      newContent.scrollTop = oldScroll;
+    }
+  }
   lastScreen = state.screen;
   if (state.dialog) renderDialog();
   if (state.screen === "STATS") setTimeout(drawChart, 50);
