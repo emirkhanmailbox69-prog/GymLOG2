@@ -34,8 +34,6 @@
             padding-bottom: 100px;
             min-height: 100vh;
         }
-        
-        /* ЕДИНЫЙ ПРИКЛЕЕННЫЙ ПРОЗРАЧНЫЙ БЛОК ДЛЯ ШАПКИ И ПРОГРЕССА */
         .sticky-top {
             position: sticky;
             top: 0;
@@ -44,7 +42,7 @@
             -webkit-backdrop-filter: blur(20px) saturate(1.5);
             backdrop-filter: blur(20px) saturate(1.5);
             border-bottom: 1px solid rgba(255,255,255,0.08);
-            padding-bottom: 16px;
+            padding-bottom: 14px;
         }
         .header {
             display: flex;
@@ -63,13 +61,13 @@
             padding: 5px;
         }
         .progress-wrapper {
-            padding: 0 16px;
+            padding: 12px 16px 0;
         }
         .progress-card {
             background: rgba(22, 22, 22, 0.5);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
-            padding: 20px;
+            padding: 16px 20px;
             text-align: center;
             -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
@@ -92,7 +90,6 @@
             transition: width 0.3s ease;
             box-shadow: 0 0 10px var(--primary-glow);
         }
-        
         .container { padding: 20px; }
         .container h3 {
             font-size: 15px;
@@ -286,7 +283,7 @@
 <body>
 
 <div class="sticky-top">
-    <div class="header">
+    <div class="header" id="ownHeader">
         <h1>💧 Трекер воды</h1>
         <button class="icon-btn" id="settingsBtn">⚙️</button>
     </div>
@@ -715,6 +712,15 @@
     }
 
     // ============ INIT ============
+
+    // Если трекер открыт внутри GymLog (iframe) — прячем собственную шапку,
+    // чтобы не дублировать заголовок. автономно — показываем.
+    if (window.top !== window.self) {
+        const oh = document.getElementById('ownHeader');
+        if (oh) oh.style.display = 'none';
+    }
+    // Для шестерёнки в шапке GymLog (звонок сквозь iframe)
+    window.openSettings = () => settingsModal.classList.add('active');
 
     loadState();
     render();
