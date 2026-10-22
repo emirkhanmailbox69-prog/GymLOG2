@@ -1395,30 +1395,14 @@ document.addEventListener('pointermove', (e) => {
     const r = n.getBoundingClientRect();
     if (e.clientY < r.top + r.height / 2) { before = n; break; }
   }
-  if (before) {
-    if (before !== dragCtx.item.nextSibling) {
-      const ph = document.createElement('div');
-      ph.className = 'drag-placeholder';
-      ph.style.height = before.offsetHeight + 'px';
-      dragCtx.list.insertBefore(ph, before);
-      dragCtx.list.insertBefore(dragCtx.item, ph);
-    }
-  } else {
-    if (dragCtx.list.lastElementChild !== dragCtx.item) {
-      const ph = document.createElement('div');
-      ph.className = 'drag-placeholder';
-      ph.style.height = dragCtx.item.offsetHeight + 'px';
-      dragCtx.list.appendChild(ph);
-      dragCtx.list.appendChild(dragCtx.item);
-    }
-  }
+  if (before) { if (before !== dragCtx.item.nextSibling) dragCtx.list.insertBefore(dragCtx.item, before); }
+  else { if (dragCtx.list.lastElementChild !== dragCtx.item) dragCtx.list.appendChild(dragCtx.item); }
   dragCtx.moved = true;
 });
 const dragEnd = (e) => {
   if (!dragCtx || e.pointerId !== dragCtx.id) return;
   const { item, list, moved } = dragCtx;
   item.classList.remove('drag-active');
-  dragCtx.list.querySelectorAll('.drag-placeholder').forEach(p => p.remove());
   dragCtx = null;
   if (!moved) return;
   const keys = dragItems(list).map(n => parseInt(n.dataset.key, 10));
