@@ -10,14 +10,15 @@
 
   function resize(){
     const DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = canvas.clientWidth || window.innerWidth;
-    H = canvas.clientHeight || window.innerHeight;
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
+    if (w === W && h === H && canvas.width > 0) return false;
+    W = w; H = h;
     canvas.width = Math.max(1, W * DPR);
     canvas.height = Math.max(1, H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    return true;
   }
-  window.addEventListener('resize', resize);
-  window.addEventListener('orientationchange', resize);
 
   function mulberry32(a){
     return function(){
@@ -57,12 +58,9 @@
     return { glow: Math.min(1, week / 4), dead: new Date(h[0].start).getHours() >= 23 };
   }
 
-  let visible = false, raf = 0;
-
-  function frame(t){
-    if (!visible) { raf = 0; return; }
-    if (W < 10 || H < 10) resize();
-    const time = t / 1000;
+  function draw(time){
+    if (W < 10 || H < 10) return;
+    const t = time / 1000;
     ctx.clearRect(0, 0, W, H);
     const baseHue = MONTH_HUES[new Date().getMonth()];
     const m = mood();
@@ -80,16 +78,28 @@
     }
     for (let i = 0; i < stars.length; i++){
       const s = stars[i];
-      const tw = 0.75 + 0.25 * Math.sin(time * s.sp + s.ph);
-      const x = (s.x + Math.sin(time * 0.05 + s.ph) * 0.01) * W;
-      const y = (((s.y + time * s.dy) % 1) + 1) % 1 * H;
+      const tw = 0.75 + 0.25 * Math.sin(t * s.sp + s.ph);
+      const x = (s.x + Math.sin(t * 0.05 + s.ph) * 0.01) * W;
+      const y = (((s.y + t * s.dy) % 1) + 1) % 1 * H;
       ctx.beginPath();
       ctx.fillStyle = 'hsla(' + (baseHue + s.hueOff).toFixed(0) + ',70%,75%,' + (s.a * tw).toFixed(3) + ')';
       ctx.arc(x, y, s.r, 0, 6.2832);
       ctx.fill();
     }
+  }
+
+  let visible = false, raf = 0;
+
+  function frame(t){
+    if (!visible) { raf = 0; return; }
+    if (W < 10 || H < 10) resize();
+    draw(t);
     raf = requestAnimationFrame(frame);
   }
+
+  window.addEventListener('resize', () => {
+    if (visible) { resize(); draw(performance.now()); }
+  });
 
   setInterval(function(){
     if (typeof state === 'undefined') return;
@@ -100,6 +110,7 @@
       canvas.style.display = 'block';
       if (builtFor !== len) buildStars();
       resize();
+      draw(performance.now());
       if (!raf) raf = requestAnimationFrame(frame);
     } else if (!want && visible){
       visible = false;
