@@ -131,7 +131,8 @@ const LS = {
   get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
-
+  
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDateLong = (d = new Date()) => {
   const s = d.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -334,13 +335,16 @@ const state = {
 
 // Пересчёт достижений при каждом запуске на основе текущей истории
 {
+  const recomputeAch = () => {
   const bw = parseFloat(state.bodyWeightText.replace(",",".")) || 0;
   const freshEarned = new Set();
-  const newOnes = evaluateNew(state.history, bw, freshEarned);
+  evaluateNew(state.history, bw, freshEarned);
   const obj = {};
-  newOnes.forEach(a => obj[a.id] = Date.now());
+  freshEarned.forEach(id => obj[id] = Date.now());
   state.earnedAch = freshEarned;
   LS.set("earnedAch", obj);
+};
+recomputeAch();
 }
 
 let tickInterval = null;
@@ -408,7 +412,15 @@ window.resetTimerVisual = () => {
   state.timerAnchorMs = state.timerMode === "COUNTDOWN" ? state.presetSeconds * 1000 : 0;
   updateTimerUI();
 };
-
+  
+window.setTimerMode = (m) => {
+  if (state.timerMode === m) return;
+  state.timerRunning = false;
+  stopTicking();
+  state.timerMode = m;
+  state.timerAnchorMs = m === 'COUNTDOWN' ? state.presetSeconds * 1000 : 0;
+  save(); render();
+};
 const startTimerFresh = () => {
   state.timerAnchorTime = Date.now();
   state.timerAnchorMs = state.timerMode === "COUNTDOWN" ? state.presetSeconds * 1000 : 0;
@@ -906,23 +918,36 @@ const CLOUD = {
     out.sort((a, b) => (b.hist - a.hist) || (b.size - a.size));
     return out;
   },
-  async restore() {
+    async restore(idForce) {
     const all = await this.listBackups();
-    const id = all.length ? all[0].id : this.gistId();
+    const id = idForce || (all.length ? all[0].id : this.gistId());
     if (!id) throw new Error('Бэкап не найден');
     const g = await this.api('/gists/' + id);
     const f = g.files[this.FILE];
     if (!f) throw new Error('Файл бэкапа не найден');
     const raw = f.truncated ? await (await fetch(f.raw_url)).text() : f.content;
     const parsed = JSON.parse(raw);
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-    keys.forEach(k => { if (!k.startsWith('gymlog_cloud')) localStorage.removeItem(k); });
-    Object.entries(parsed.data || {}).forEach(([k, v]) => localStorage.setItem(k, v));
+    if (!parsed || typeof parsed !== 'object' || !parsed.data || typeof parsed.data !== 'object') {
+      throw new Error('Бэкап повреждён: неверный формат');
+    }
+    const entries = Object.entries(parsed.data).filter(([k, v]) => typeof k === 'string' && typeof v === 'string');
+    if (!entries.length) throw new Error('Бэкап пуст: восстанавливать нечего');
+    const prev = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k.startsWith('gymlog_cloud')) prev[k] = localStorage.getItem(k);
+    }
+    try {
+      Object.keys(prev).forEach(k => localStorage.removeItem(k));
+      entries.forEach(([k, v]) => localStorage.setItem(k, v));
+    } catch (e) {
+      Object.keys(prev).forEach(k => localStorage.removeItem(k));
+      Object.entries(prev).forEach(([k, v]) => localStorage.setItem(k, v));
+      throw new Error('Сбой записи: текущие данные откатаны назад');
+    }
     localStorage.setItem('gymlog_cloud_gist', id);
     return parsed;
-  }
-};
+  },
 
 let cloudTimer = null, cloudDeb = null, cloudRetry = null, cloudListeners = false, cloudLastHide = 0;
 function cloudQueue(ms) {
@@ -949,7 +974,28 @@ function cloudStart() {
   }
 }
 window.cloudBackupNow = () => CLOUD.backup(false).then(() => render()).catch(e => toast(e.message));
-window.cloudRestore = () => CLOUD.restore().then(() => { toast('Восстановлено!'); location.reload(); }).catch(e => toast(e.message));
+window.cloudRestore = async () => {
+  syncTokenFromInput();
+  try {
+    const all = await CLOUD.listBackups();
+    if (!all.length) { toast('Бэкапов не найдено'); return; }
+    if (all.length === 1) {
+      state.dialog = {
+        type: 'confirm', title: 'Восстановление',
+        text: `Найден один бэкап: ${new Date(all[0].updated).toLocaleString('ru-RU')}, тренировок: ${all[0].hist}. Заменить текущие данные?`,
+        ok: 'Восстановить',
+        onOk: () => { CLOUD.restore(all[0].id).then(() => { toast('Восстановлено!'); location.reload(); }).catch(e => toast(e.message)); }
+      };
+    } else {
+      state.dialog = { type: 'cloudPick', list: all };
+    }
+    render();
+  } catch (e) { toast(e.message); }
+};
+window.cloudPickRestore = (id) => {
+  state.dialog = null;
+  CLOUD.restore(id).then(() => { toast('Восстановлено!'); location.reload(); }).catch(e => toast(e.message));
+};
 window.cloudConnect = async () => {
   const tok = document.getElementById('cloudToken').value.trim();
   if (!tok) { toast('Вставь токен'); return; }
@@ -1231,7 +1277,7 @@ const renderSettings = () => {
   const isConnected = !!CLOUD.token();
   const lastErr = localStorage.getItem('gymlog_cloud_err') || '';
   return `
-  <div class="card" style="cursor:default"><h3>Мой вес, кг (для достижений ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;save()" placeholder="Вес, кг" style="margin-top:8px"></div>
+  <div class="card" style="cursor:default"><h3>Мой вес, кг (для достижений ×BW):</h3><input type="text" inputmode="decimal" value="${state.bodyWeightText}" onchange="state.bodyWeightText=this.value;recomputeAch();save()" placeholder="Вес, кг" style="margin-top:8px"></div>
   <div class="card" style="cursor:default"><button class="btn-secondary" style="height:64px;font-size:18px" onclick="state.screen='BASE';render()">📚 База упражнений</button></div>
   <div class="card" style="cursor:default"><h3>Резервная копия данных</h3><div style="margin-top:8px;display:flex;gap:8px"><button class="btn-small btn-primary" onclick="exportData()">Экспорт</button><label class="btn-small btn-secondary" style="cursor:pointer"><input type="file" accept=".json" onchange="importData(event)" style="display:none">Импорт</label></div><div class="muted">Экспорт сохраняет все данные в JSON-файл. Импорт восстанавливает из файла.</div></div>
   <div class="card" style="cursor:default">
