@@ -944,6 +944,9 @@ const headerFor = () => {
     const draft = state.drafts.find(d => d.id === state.sourceDraftId);
     return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0">${draft?.name || "Новая тренировка"}</h2>`;
   }
+  if (state.screen === "WATER") {
+    return `<button class="back" onclick="backAction()">← Меню</button><h2 style="margin:0;font-size:28px">💧 Трекер воды</h2><button class="icon-btn" style="position:absolute;right:14px;bottom:8px;font-size:26px" onclick="waterSettings()">⚙️</button>`;
+  }
   const titles = {
     FUTURE: "Будущие тренировки",
     HISTORY: "История",
@@ -976,6 +979,10 @@ const renderHome = () => `
   <div class="footer">Производство: Агафон Дристунцов © 2026</div>
 `;
 
+window.waterSettings = () => {
+  const f = document.querySelector('.app-content iframe');
+  if (f && f.contentWindow && f.contentWindow.openSettings) f.contentWindow.openSettings();
+};  
 const renderWater = () => `
   <iframe src="./water.html" style="width:100%;height:100%;border:none;border-radius:16px;background:#0a0a0a"></iframe>
 `;
@@ -1295,7 +1302,7 @@ const render = () => {
     SUMMARY: renderSummary, WATER: renderWater, RPG: renderRPG, WRAPPED: renderWrapped, BRIEFING: renderBriefing
   };
   const noPad = (state.screen==='WATER'||state.screen==='RPG'||state.screen==='WRAPPED'||state.screen==='BRIEFING');
-  app.innerHTML = `<div class="app-content${noPad?' no-pad':''}"><div class="screen${changed?(dirBack?' anim-back':' anim-fwd'):''}"><div class="app-header">${headerFor()}</div><div class="inner">${contentFns[state.screen]()}</div></div></div>`;
+  app.innerHTML = `<div class="app-content${noPad?' no-pad':''}"><div class="screen${changed?(dirBack?' anim-back':' anim-fwd'):''}"><div class="app-header"${state.screen==='WATER'?' style="background:rgba(10,10,10,.35)"':''}>${headerFor()}</div><div class="inner">${contentFns[state.screen]()}</div></div></div>`;
   const newContent = document.querySelector('.app-content');
   const hdr = newContent ? newContent.querySelector('.app-header') : null;
   const scr = newContent ? newContent.querySelector('.screen') : null;
