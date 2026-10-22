@@ -28,7 +28,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#0a0a0
 @keyframes scrBack{from{opacity:0;transform:translateX(-56px)}to{opacity:1;transform:none}}
 .app-header{position:sticky;top:0;flex:0 0 auto;z-index:6;padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:rgba(10,10,10,.54);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,.08)}
 .inner{flex:1 0 auto;padding:16px;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
-.no-pad .inner{padding-left:8px;padding-right:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.no-pad .inner{padding-left:8px;padding-right:8px;padding-top:0;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
 h1{font-size:32px;font-weight:400;font-family:var(--disp)}
 h2{font-size:24px;font-weight:400;font-family:var(--disp)}
 h3{font-size:18px;font-weight:600;margin-bottom:8px}
@@ -874,9 +874,28 @@ const CLOUD = {
     const g = list.find(x => (x.description || '').includes('gymlog cloud backup') || (x.files && x.files[this.FILE]));
     return g ? g.id : '';
   },
+    async listBackups() {
+    const list = await this.api('/gists?per_page=100');
+    const cands = list.filter(x => (x.files && x.files[this.FILE]) || (x.description || '').includes('gymlog cloud backup'));
+    const out = [];
+    for (const g of cands) {
+      const f = g.files && g.files[this.FILE];
+      if (!f) continue;
+      let hist = 0, size = f.size || 0;
+      try {
+        const content = f.truncated ? await (await fetch(f.raw_url)).text() : f.content;
+        const parsed = JSON.parse(content);
+        const h = parsed.data && parsed.data.history;
+        hist = h ? JSON.parse(h).length : 0;
+      } catch (e) {}
+      out.push({ id: g.id, updated: g.updated_at, size, hist });
+    }
+    out.sort((a, b) => (b.hist - a.hist) || (b.size - a.size));
+    return out;
+  },
   async restore() {
-    let id = this.gistId();
-    if (!id) id = await this.findGist();
+    const all = await this.listBackups();
+    const id = all.length ? all[0].id : this.gistId();
     if (!id) throw new Error('Бэкап не найден');
     const g = await this.api('/gists/' + id);
     const f = g.files[this.FILE];
@@ -907,11 +926,21 @@ function cloudStart() {
 }
 window.cloudBackupNow = () => CLOUD.backup(false).then(() => render()).catch(e => toast(e.message));
 window.cloudRestore = () => CLOUD.restore().then(() => { toast('Восстановлено!'); location.reload(); }).catch(e => toast(e.message));
-window.cloudConnect = () => {
+window.cloudConnect = async () => {
   const tok = document.getElementById('cloudToken').value.trim();
   if (!tok) { toast('Вставь токен'); return; }
   localStorage.setItem('gymlog_cloud_token', tok);
-  CLOUD.backup(false).then(() => { cloudStart(); render(); }).catch(e => toast(e.message));
+  try {
+    const all = await CLOUD.listBackups();
+    if (all.length && all[0].hist > 0) {
+      localStorage.setItem('gymlog_cloud_gist', all[0].id);
+      toast('Нашёл старый бэкап. Жми «Восстановить из облака»');
+    } else {
+      await CLOUD.backup(false);
+      cloudStart();
+    }
+  } catch (e) { toast(e.message); }
+  render();
 };
 
 // === ШАПКА ===
@@ -1281,7 +1310,13 @@ let iframeFix = null;
 function fixIframe(sc, hdr){
   const ifr = sc.querySelector('iframe');
   if (!ifr) return;
-  const set = () => { ifr.style.height = Math.max(200, sc.clientHeight - (hdr ? hdr.offsetHeight : 0) - 16) + 'px'; };
+  const set = () => {
+    const inner = sc.querySelector('.inner');
+    const cs = inner ? getComputedStyle(inner) : null;
+    const pt = cs ? (parseFloat(cs.paddingTop) || 0) : 0;
+    const pb = cs ? (parseFloat(cs.paddingBottom) || 0) : 0;
+    ifr.style.height = Math.max(200, sc.clientHeight - (hdr ? hdr.offsetHeight : 0) - pt - pb) + 'px';
+  };
   set();
   iframeFix = set;
 }
