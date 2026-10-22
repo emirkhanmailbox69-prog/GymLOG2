@@ -948,7 +948,7 @@ const CLOUD = {
     localStorage.setItem('gymlog_cloud_gist', id);
     return parsed;
   },
-
+};
 let cloudTimer = null, cloudDeb = null, cloudRetry = null, cloudListeners = false, cloudLastHide = 0;
 function cloudQueue(ms) {
   if (!CLOUD.token()) return;
