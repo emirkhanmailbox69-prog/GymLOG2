@@ -1291,7 +1291,7 @@ const renderSettings = () => {
     </div>
     <button class="btn-small btn-secondary" style="margin-top:8px" onclick="cloudRestore()">Восстановить из облака</button>
   </div>
-  <div class="card" style="cursor:default"><h3>Режим таймера</h3><div class="radio-group"><div class="radio ${state.timerMode==='COUNTDOWN'?'active':''}" onclick="state.timerMode='COUNTDOWN';if(!state.timerRunning)state.timerAnchorMs=state.presetSeconds*1000;save();render()">Таймер</div><div class="radio ${state.timerMode==='STOPWATCH'?'active':''}" onclick="state.timerMode='STOPWATCH';if(!state.timerRunning)state.timerAnchorMs=0;save();render()">Секундомер</div></div></div>
+  <div class="card" style="cursor:default"><h3>Режим таймера</h3><div class="radio-group"><div class="radio ${state.timerMode==='COUNTDOWN'?'active':''}" onclick="setTimerMode('COUNTDOWN')">Таймер</div><div class="radio ${state.timerMode==='STOPWATCH'?'active':''}" onclick="setTimerMode('STOPWATCH')">Секундомер</div></div></div>
   <div class="card" style="cursor:default"><div class="switch-row"><div>Автозапуск после подхода</div><div class="switch ${state.autoStart?'on':''}" onclick="state.autoStart=!state.autoStart;save();render()"></div></div></div>
   <div class="card" style="cursor:default"><h3>Пресет отдыха (сек)</h3><div class="radio-group">${[60,90,120,180].map(p => `<div class="radio ${state.presetSeconds===p?'active':''}" onclick="state.presetSeconds=${p};if(state.timerMode==='COUNTDOWN'&&!state.timerRunning)state.timerAnchorMs=${p}*1000;save();render()">${p}</div>`).join("")}</div></div>
 `;
@@ -1343,6 +1343,8 @@ const renderDialog = () => {
     content = `<div class="dialog"><h3>Строка веса</h3><input id="dlg-w" type="text" inputmode="decimal" value="${d.weight}" placeholder="Вес, кг"><input id="dlg-r" type="text" inputmode="numeric" value="${d.reps}" placeholder="Повторения"><input id="dlg-s" type="text" inputmode="numeric" value="${d.sets}" placeholder="Сколько подходов"><div class="btn-row"><button class="btn-primary" onclick="saveLineData()">Сохранить</button><button class="btn-danger" onclick="deleteLineData()">Удалить</button></div></div>`;
   } else if (d.type === "note") {
     content = `<div class="dialog"><h3>Заметка к подходу</h3><textarea id="dlg-input">${d.note}</textarea><div class="btn-row"><button class="btn-primary" onclick="saveNoteData()">Сохранить</button><button onclick="dialogCancel()">Отмена</button></div></div>`;
+  } else if (d.type === "cloudPick") {
+    content = `<div class="dialog"><h3>Выбери бэкап</h3><div style="max-height:300px;overflow-y:auto;margin-bottom:12px">${d.list.map(g => `<div class="card" onclick="cloudPickRestore('${g.id}')"><div style="font-size:14px">${new Date(g.updated).toLocaleString('ru-RU')}</div><div class="meta">тренировок: ${g.hist} · размер: ${g.size} б</div></div>`).join('')}</div><button onclick="dialogCancel()">Отмена</button></div>`;
   }
   if (content) {
     const bg = document.createElement("div");
