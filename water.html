@@ -27,15 +27,19 @@
             --warning: #ffb84a;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            padding-bottom: 100px;
-            min-height: 100vh;
+            position: relative;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
         }
+        /* Плашка ПРИКЛЕЕНА: лежит вне зоны скролла, поверх списка */
         .sticky-top {
-            position: fixed;
+            position: absolute;
             top: 0; left: 0; right: 0;
             z-index: 10;
             background: rgba(10, 10, 10, 0.5);
@@ -90,7 +94,16 @@
             transition: width 0.3s ease;
             box-shadow: 0 0 10px var(--primary-glow);
         }
-        .container { padding: 20px; }
+        /* Единственная скроллящаяся зона: список истории */
+        .container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding: 20px;
+            padding-bottom: 110px;
+        }
         .container h3 {
             font-size: 15px;
             letter-spacing: 2px;
@@ -298,7 +311,7 @@
     </div>
 </div>
 
-<div class="container">
+<div class="container" id="scrollArea">
     <h3 id="historyTitle">История за сегодня</h3>
     <div class="history-list" id="historyList"></div>
 </div>
@@ -721,13 +734,14 @@
     // Шестерёнка для шапки GymLog (звонок сквозь iframe)
     window.openSettings = () => settingsModal.classList.add('active');
 
-    // Контент не прячется под приклеенную плашку: отступ по её реальной высоте
-    function fitTopPadding() {
+    // Список истории стартует ниже плашки и скроллится только внутри своего контейнера
+    function fitLayout() {
         const st = document.getElementById('stickyTop');
-        if (st) document.body.style.paddingTop = st.offsetHeight + 'px';
+        const c = document.getElementById('scrollArea');
+        if (st && c) c.style.paddingTop = (st.offsetHeight + 12) + 'px';
     }
-    fitTopPadding();
-    window.addEventListener('resize', fitTopPadding);
+    fitLayout();
+    window.addEventListener('resize', fitLayout);
 
     loadState();
     render();
