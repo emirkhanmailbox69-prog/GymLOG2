@@ -117,6 +117,8 @@ canvas{width:100%;height:240px;display:block}
 .ach-prog{height:6px;background:#1f1f1f;border-radius:4px;overflow:hidden;margin-top:8px}
 .ach-prog i{display:block;height:100%;background:linear-gradient(90deg,#4a6bff,#8ab4ff)}
 .ach-prog-lbl{font-size:11px;color:#888;margin-top:4px}
+.drag-handle{cursor:grab;touch-action:none;padding:4px 10px 4px 0;color:#555;font-size:18px;user-select:none;-webkit-user-select:none;line-height:1}
+.dragging{opacity:.45;border:1px dashed #4a6bff}
 </style>
 </head>
 <body>
@@ -1116,8 +1118,9 @@ const renderFuture = () => `
 `;
 
 const exerciseCard = (ex, ei, withNote) => `
-  <div class="card" style="cursor:default">
-      <div class="row between" style="cursor:pointer;padding:6px 0" onclick="toggleExpand(${ei})">
+    <div class="card" style="cursor:default" data-dragitem data-key="${ei}">
+    <div class="row between" style="cursor:pointer;padding:6px 0" onclick="toggleExpand(${ei})">
+      <div class="drag-handle" data-draghandle onclick="event.stopPropagation()">⠿</div>
       <h3 style="flex:1;margin-bottom:0">${ex.name}</h3>
       <button class="icon-btn" onclick="event.stopPropagation();toggleExpand(${ei})">${state.expandedExercises.has(ei)?"▲":"▼"}</button>
       <button class="icon-btn" onclick="event.stopPropagation();editExerciseByIndex(${ei})">изм.</button>
@@ -1144,13 +1147,13 @@ const renderWorkout = () => {
   if (state.editorMode) {
     return `
       <button class="btn-primary" style="height:72px;font-size:22px;margin-bottom:16px" onclick="startFromEditor()">▶ Начать тренировку</button>
-      ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, false)).join("")}
+      <div data-draglist="workout">${state.exercises.map((ex, ei) => exerciseCard(ex, ei, false)).join("")}</div>
       <button class="btn-primary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="state.dialog={type:'pickExercise'};render()">+ Добавить упражнение</button>
       <button class="btn-secondary" style="height:64px;margin-bottom:12px;font-size:18px" onclick="saveDraftAction()">💾 Сохранить черновик</button>
     `;
   }
   return `
-    ${state.exercises.map((ex, ei) => exerciseCard(ex, ei, true)).join("")}
+    <div data-draglist="workout">${state.exercises.map((ex, ei) => exerciseCard(ex, ei, true)).join("")}</div>
     <div class="card" style="cursor:default">
       <div class="switch-row" onclick="state.flagBulkan=!state.flagBulkan;save();render()"><div>🐱 Булкан был рядом</div><div class="switch ${state.flagBulkan?'on':''}"></div></div>
       <div class="switch-row" style="padding-bottom:0" onclick="state.flagNomusic=!state.flagNomusic;save();render()"><div>🔇 Без музыки</div><div class="switch ${state.flagNomusic?'on':''}"></div></div>
@@ -1301,7 +1304,9 @@ const renderBase = () => `
   <div class="row" style="margin-bottom:12px"><input id="newEx" type="text" placeholder="Новое упражнение" style="flex:1"><button class="btn-small btn-primary" style="width:auto;margin-left:8px" onclick="addBaseExercise()">Добавить</button></div>
   <button class="btn-secondary" style="height:56px;margin-bottom:16px;font-size:16px" onclick="importBaseFromHistory()">Импортировать из истории</button>
   ${state.exerciseBase.length === 0 ? '<div class="empty">Пока пусто.</div>' : ""}
-  ${state.exerciseBase.map((n, i) => `<div class="card" style="padding:12px;cursor:default"><div class="row between"><div style="flex:1">${n}</div><button class="btn-small btn-danger" onclick="deleteBaseByIndex(${i})">Удалить</button></div></div>`).join("")}
+  <div data-draglist="base">
+  ${state.exerciseBase.map((n, i) => `<div class="card" style="padding:12px;cursor:default" data-dragitem data-key="${i}"><div class="row between"><div class="drag-handle" data-draghandle>⠿</div><div style="flex:1">${n}</div><button class="btn-small btn-danger" onclick="deleteBaseByIndex(${i})">Удалить</button></div></div>`).join("")}
+  </div>
 `;
 
 const renderSummary = () => {
@@ -1362,7 +1367,48 @@ window.toggleExpand = (ei) => {
   else state.expandedExercises.add(ei);
   render();
 };
-
+  
+// === DRAG: перетаскивание упражнений и базы ===
+let dragCtx = null;
+const dragItems = (list) => Array.from(list.children).filter(n => n.hasAttribute && n.hasAttribute('data-dragitem'));
+document.addEventListener('pointerdown', (e) => {
+  const h = e.target.closest ? e.target.closest('[data-draghandle]') : null;
+  if (!h) return;
+  const item = h.closest('[data-dragitem]');
+  const list = item ? item.parentElement : null;
+  if (!item || !list || !list.hasAttribute('data-draglist')) return;
+  e.preventDefault();
+  dragCtx = { item, list, id: e.pointerId, moved: false };
+  item.classList.add('dragging');
+}, { passive: false });
+document.addEventListener('pointermove', (e) => {
+  if (!dragCtx || e.pointerId !== dragCtx.id) return;
+  const nodes = dragItems(dragCtx.list);
+  let before = null;
+  for (const n of nodes) {
+    if (n === dragCtx.item) continue;
+    const r = n.getBoundingClientRect();
+    if (e.clientY < r.top + r.height / 2) { before = n; break; }
+  }
+  if (before) { if (before !== dragCtx.item.nextSibling) dragCtx.list.insertBefore(dragCtx.item, before); }
+  else { if (dragCtx.list.lastElementChild !== dragCtx.item) dragCtx.list.appendChild(dragCtx.item); }
+  dragCtx.moved = true;
+});
+const dragEnd = (e) => {
+  if (!dragCtx || e.pointerId !== dragCtx.id) return;
+  const { item, list, moved } = dragCtx;
+  item.classList.remove('dragging');
+  dragCtx = null;
+  if (!moved) return;
+  const keys = dragItems(list).map(n => parseInt(n.dataset.key, 10));
+  const type = list.getAttribute('data-draglist');
+  if (type === 'base') state.exerciseBase = keys.map(k => state.exerciseBase[k]);
+  else if (type === 'workout') state.exercises = keys.map(k => state.exercises[k]);
+  save(); render();
+};
+document.addEventListener('pointerup', dragEnd);
+document.addEventListener('pointercancel', dragEnd);
+  
 // === RIPPLE: белая волна от точки нажатия ===
 document.addEventListener('pointerdown', (e) => {
   const b = e.target.closest ? e.target.closest('button') : null;
